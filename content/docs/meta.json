@@ -1,0 +1,10 @@
+{
+  "pages": [
+    "index",
+    "getting-started",
+    "concepts",
+    "graph-v2",
+    "integrations",
+    "troubleshooting"
+  ]
+}
