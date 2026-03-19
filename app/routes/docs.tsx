@@ -16,6 +16,13 @@ import { getPageImagePath } from "@/lib/og";
 import { source } from "@/lib/source";
 import type { Route } from "./+types/docs";
 
+const TOP_TABS = [
+  { title: "Overview", url: "/docs/overview" },
+  { title: "Principles", url: "/docs/principles" },
+  { title: "Product", url: "/docs/product" },
+  { title: "Build", url: "/docs/build" },
+] as const;
+
 export async function loader({ params }: Route.LoaderArgs) {
   const raw = params["*"] ?? "";
   const slugs = raw.split("/").filter((v) => v.length > 0);
@@ -95,12 +102,6 @@ const clientLoader = browserCollections.docs.createClientLoader({
 export default function Page({ loaderData }: Route.ComponentProps) {
   const { slugs, path, pageTree, imagePath } = useFumadocsLoader(loaderData);
   const markdownUrl = `/llms.mdx/docs/${slugs.join("/")}`;
-  const topTabs = pageTree.children
-    .filter((item) => item.type === "folder")
-    .map((item) => ({
-      title: String(item.name ?? ""),
-      url: item.index?.url ?? "#",
-    }));
   const currentSection = slugs[0] ?? "overview";
 
   return (
@@ -109,7 +110,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
         markdownUrl,
         path,
         imagePath,
-        topTabs,
+        topTabs: [...TOP_TABS],
         currentSection,
       })}
     </DocsLayout>
