@@ -41,7 +41,7 @@ If the spec is vague, the implementation will drift.
 
 `resq-agent` is where the flow becomes real. That means queue boundaries, worker boundaries, and emitted telemetry have to exist before `resq-flow` can render anything honestly.
 
-### Required implementation surfaces
+### Required implementation touchpoints
 
 - define queue and function constants
 - enqueue work through the right queue client paths
@@ -95,7 +95,7 @@ Prefer explicit `flow_id` too when the producer path supports it, but do not rel
 
 There is not a second graph JSON file. The required JSON is the shared contract. The graph definition itself still lives in TypeScript when a flow has a rich canvas view.
 
-### Required implementation surfaces
+### Required implementation touchpoints
 
 ```text
 ui/src/flow-contracts/<flow-id>.json
@@ -203,4 +203,4 @@ Before calling the flow done, make sure:
 - the flow contract matches real emitted telemetry
 - queue and worker boundaries still read truthfully
 - the graph stays sparse while drill-down stays rich
-- the logs and canvas agree on what counts as default-surface signal
+- the logs and canvas agree on what counts as default signal

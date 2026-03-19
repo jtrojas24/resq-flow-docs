@@ -1,6 +1,6 @@
 ---
 title: Signal and detail
-description: Why the graph stays sparse, why queues remain prominent, and how we decide what telemetry should surface by default.
+description: Why the graph stays sparse, why queues remain prominent, and how we decide what telemetry should appear by default.
 ---
 
 ## Graph shape principles
@@ -52,7 +52,7 @@ Use `detail` when the thing is better shown as:
 - a queue handoff detail
 - a sidebar note
 
-## Signal-first default surfaces
+## Signal-first defaults
 
 When a user selects a first-class node, the default experience should answer:
 
@@ -73,7 +73,7 @@ It should prefer:
 
 Filtering should be aggressive by default, but never at the cost of hiding meaningful risk.
 
-Always surface by default:
+Always show by default:
 
 - errors
 - retries
@@ -95,7 +95,7 @@ Important non-error examples include things like:
 
 Canvas-side node detail and the default logs view should use the same show or hide philosophy.
 
-That does not mean they must render the same layout, but they should agree on what counts as default-surface telemetry:
+That does not mean they must render the same layout, but they should agree on what counts as default telemetry:
 
 - meaningful by default
 - selected operational by default
