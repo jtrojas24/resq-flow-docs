@@ -9,7 +9,7 @@ import {
   MarkdownCopyButton,
   ViewOptionsPopover,
 } from "fumadocs-ui/layouts/docs/page";
-import { redirect } from "react-router";
+import { Link, redirect } from "react-router";
 import { getMDXComponents } from "@/components/mdx";
 import { baseOptions, gitConfig } from "@/lib/layout.shared";
 import { getPageImagePath } from "@/lib/og";
@@ -40,10 +40,14 @@ const clientLoader = browserCollections.docs.createClientLoader({
       markdownUrl,
       path,
       imagePath,
+      topTabs,
+      currentSection,
     }: {
       markdownUrl: string;
       path: string;
       imagePath: string;
+      topTabs: { title: string; url: string }[];
+      currentSection: string;
     },
   ) {
     return (
@@ -51,6 +55,26 @@ const clientLoader = browserCollections.docs.createClientLoader({
         <title>{`${frontmatter.title} | ResQ Flow Docs`}</title>
         <meta name="description" content={frontmatter.description} />
         <meta property="og:image" content={imagePath} />
+        <div className="mb-6 hidden md:flex items-end gap-6 border-b">
+          {topTabs.map((tab) => {
+            const active = tab.url === `/docs/${currentSection}`;
+
+            return (
+              <Link
+                className={[
+                  "inline-flex items-center border-b-2 pb-2 text-sm font-medium transition-colors",
+                  active
+                    ? "border-fd-primary text-fd-primary"
+                    : "border-transparent text-fd-muted-foreground hover:text-fd-foreground",
+                ].join(" ")}
+                key={tab.url}
+                to={tab.url}
+              >
+                {tab.title}
+              </Link>
+            );
+          })}
+        </div>
         <DocsTitle>{frontmatter.title}</DocsTitle>
         <DocsDescription>{frontmatter.description}</DocsDescription>
         <div className="flex flex-row gap-2 items-center border-b -mt-4 pb-6">
@@ -71,10 +95,23 @@ const clientLoader = browserCollections.docs.createClientLoader({
 export default function Page({ loaderData }: Route.ComponentProps) {
   const { slugs, path, pageTree, imagePath } = useFumadocsLoader(loaderData);
   const markdownUrl = `/llms.mdx/docs/${slugs.join("/")}`;
+  const topTabs = pageTree.children
+    .filter((item) => item.type === "folder")
+    .map((item) => ({
+      title: String(item.name ?? ""),
+      url: item.index?.url ?? "#",
+    }));
+  const currentSection = slugs[0] ?? "overview";
 
   return (
-    <DocsLayout {...baseOptions()} tabMode="top" tree={pageTree}>
-      {clientLoader.useContent(path, { markdownUrl, path, imagePath })}
+    <DocsLayout {...baseOptions()} sidebar={{ tabs: false }} tree={pageTree}>
+      {clientLoader.useContent(path, {
+        markdownUrl,
+        path,
+        imagePath,
+        topTabs,
+        currentSection,
+      })}
     </DocsLayout>
   );
 }
