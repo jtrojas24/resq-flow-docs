@@ -1,26 +1,97 @@
 ---
 title: Getting started
-description: Get the docs app running locally and understand its initial scope.
+description: Run resq-flow locally, use the preferred topology, and verify that ingest works.
 ---
 
-This repo is the documentation home for `resq-flow`.
+`resq-flow` is a local development-only flow visualizer for ResQ telemetry.
 
-## Run locally
+It is built around one local contract:
 
-```bash
-bun run dev
+- producers send OTLP to Vector once
+- Vector fans out to Victoria and `resq-flow`
+- Victoria remains the storage and query source of truth
+- `resq-flow` renders a low-latency, flow-oriented live view on top of that stream
+
+## Prerequisites
+
+- Rust `stable` with edition 2024 support
+- Bun on your `PATH`
+- the shared observability stack from `fullstack`
+
+## Preferred local mode
+
+Use `resq-flow` behind the shared Vector stack by default.
+
+1. Start the shared observability stack from `fullstack`.
+2. Start `resq-flow` with `make dev`.
+3. Let Vector fan out a filtered copy of traces and logs to `http://host.docker.internal:4200`.
+4. Verify endpoints with `make print-endpoints`.
+5. Verify live ingest with `make verify-ingest`.
+
+## Topology
+
+```text
+producer(s) -> Vector -> VictoriaLogs / VictoriaTraces / VictoriaMetrics
+                     \
+                      -> resq-flow relay -> WebSocket -> UI
 ```
 
-## Initial scope
+The applied local Vector runtime config lives in `fullstack` at:
 
-This first scaffold is focused on:
+- `observability/vector/vector.yaml`
 
-- a clean docs shell
-- search and navigation
-- a stable place to migrate current `resq-flow` docs
+This repo also keeps a discoverable example snippet in:
 
-## Expected next content
+- `examples/vector/resq-flow-fanout.yaml`
 
-- setup and local workflow guides
-- how `resq-flow` fits into the wider ResQ dev loop
-- links to the canonical runtime and UI repos
+## Development
+
+Run the app:
+
+```bash
+make dev
+```
+
+Default endpoints:
+
+- relay: `http://localhost:4200`
+- UI: `http://localhost:5173`
+
+Helpful commands:
+
+```bash
+make test
+make print-endpoints
+make verify-ingest
+make smoke-vector-fanout
+make smoke-relay-ingest
+make replay
+make replay-direct
+```
+
+## Direct mode
+
+Direct-to-relay mode still exists for isolated debugging:
+
+- traces: `http://localhost:4200/v1/traces`
+- logs: `http://localhost:4200/v1/logs`
+
+Use it only when you intentionally want to bypass the shared Vector path.
+
+## Validation
+
+Standard checks:
+
+```bash
+cd relay && cargo fmt
+cd relay && cargo clippy -- -D warnings
+cd relay && cargo test
+cd ui && bun test
+cd ui && bun run build
+```
+
+## Practical caveats
+
+- the Rust relay must compile before `make dev` works, so the first run is slower
+- `make replay` expects the relay and UI to already be running
+- `make replay-direct` is useful when you want to test the UI path without the full relay loop

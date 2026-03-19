@@ -3,33 +3,49 @@ title: resq-flow docs
 description: Documentation for running, understanding, and integrating resq-flow.
 ---
 
-`resq-flow` is a local, flow-oriented observability app for understanding live execution and history across ResQ flows.
+`resq-flow` is a local, flow-oriented observability product for understanding live execution and history across ResQ flows.
 
 This site is the starting point for:
 
 - local setup and day-to-day usage
 - core product and flow concepts
+- graph foundations and semantics
 - Graph V2 principles and layout direction
-- integration guidance for `resq-agent` and other consumers
-- troubleshooting relay, ingest, and docs-site issues
+- design-system guidance
+- integration guidance for `resq-agent` and future consumers
+- troubleshooting relay, ingest, replay, and docs-site issues
 
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" />
   <Card title="Concepts" href="/docs/concepts" />
+  <Card title="Foundations" href="/docs/foundations" />
   <Card title="Graph V2" href="/docs/graph-v2" />
+  <Card title="Design system" href="/docs/design-system" />
   <Card title="Integrations" href="/docs/integrations" />
   <Card title="Troubleshooting" href="/docs/troubleshooting" />
 </Cards>
 
-## What is here already
+## What this docs site is for
 
-- A clean React Router + Fumadocs scaffold
-- Orama-backed docs search
-- LLM-friendly routes for page exports
-- Initial sections ready for migrated `resq-flow` content
+- showing how to run and validate `resq-flow` locally
+- documenting the product model behind flows, runs, nodes, and history
+- making Graph V2, foundations, and design rules easier to navigate
+- capturing how `resq-flow` integrates with the wider ResQ toolchain
 
-## What comes next
+## Core ideas
 
-- move the current `resq-flow` docs into stable sections
-- pull over the highest-value Graph V2 and design-system material
-- add integration guides for `resq-agent` and future consumers
+- `resq-flow` is not just a graph viewer
+- the graph is one view of a broader flow-oriented observability system
+- graphs should stay sparse while drill-down stays rich
+- semantics should drive layout, not hand-placed coordinates
+- producers should emit telemetry once into the shared observability path
+
+## Current structure
+
+- `Getting started` focuses on local setup, preferred runtime mode, and validation.
+- `Concepts` explains the product model, flow model, and the role of live versus history.
+- `Foundations` captures the rules that decide what belongs in the graph and how drill-down should work.
+- `Graph V2` captures the layout and authoring direction for future graph work.
+- `Design system` documents the UI language that supports the graph.
+- `Integrations` explains how `resq-flow` fits into `resq-agent` and later consumers.
+- `Troubleshooting` collects the practical debugging and verification paths.

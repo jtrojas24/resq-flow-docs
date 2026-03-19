@@ -1,16 +1,134 @@
 ---
 title: Graph V2
-description: The home for Graph V2 rules, contracts, and migration guidance.
+description: The current direction for semantic-first, layout-first graph authoring in resq-flow.
 ---
 
 Graph V2 is the direction for making layout an outcome of semantics rather than manual positioning.
 
-## Focus areas
+## What Graph V2 means
 
-- first-class node rules
-- hierarchical layout
-- group behavior
-- branch and lane patterns
-- migration guidance from current graph shapes
+- the flow spec decides what exists
+- the graph config declares structure and ownership
+- the design system decides how things look
+- the layout system decides where things go
+- overrides are rare polish, not the default authoring model
 
-This section is intentionally a landing zone for the Graph V2 summary, layout contract, execution plan, and pattern log.
+## Core rules
+
+### 1. One layout authority
+
+The layout engine should be the default source of truth for positions.
+
+Manual `x/y` should be fallback or override only.
+
+### 2. Hierarchical layout
+
+Use two levels:
+
+- global layout for first-class nodes, major groups, and resources
+- local layout inside groups for detail boxes and small branch outcomes
+
+### 3. First-class nodes form the backbone
+
+The main graph should be shaped by:
+
+- queues
+- workers
+- important decisions
+- important processes
+- major triggers when present
+
+Detail explains the backbone. It does not define the backbone.
+
+### 4. Groups are real containers
+
+Groups are not background rectangles. They should:
+
+- contain related detail
+- size from children or local layout
+- be positioned by the global layout system
+
+### 5. Notes must be anchored
+
+Notes and annotations should attach to:
+
+- a node
+- a group
+- an edge
+- a branch outcome
+
+### 6. Overrides are allowed, but rare
+
+Support:
+
+- pinned anchors
+- small note offsets
+- local nudges
+- edge-routing or lane hints
+
+Do not use overrides to manually lay out the whole graph.
+
+### 7. Layout should respect semantic lanes
+
+Useful lane concepts include:
+
+- main execution
+- branch outcomes
+- sidecar work
+- resources
+- notes
+
+### 8. Visual hierarchy should match semantic hierarchy
+
+First-class nodes should dominate. Detail should recede. Resources should stay visible without pretending to own execution.
+
+## Principles that sharpen Graph V2
+
+- real queue and worker boundaries stay first-class
+- queues are hub anchors and need breathing room
+- important does not automatically mean first-class
+- shared queue fan-in should converge before the queue
+- graphs should stay sparse while drill-down stays rich
+- process and detail are not the same thing
+- trigger and cron should not share meaning
+- spec should come before implementation
+
+## Current reusable patterns
+
+The current pattern log highlights a few patterns worth preserving:
+
+- semantic lanes
+- sidecar lanes for important but secondary pipelines
+- multi-outcome decision patterns
+- grouped exception lanes
+- implicit shared queue re-entry
+- queue hub clearance and shared fan-in
+- light branch collision cleanup
+
+## Authoring model
+
+Graph V2 authoring splits into four layers:
+
+1. flow spec
+2. semantic graph definition
+3. visual system
+4. layout system
+
+This keeps semantics, visuals, and layout from collapsing into one hard-to-maintain flow file.
+
+## Migration direction
+
+The current execution plan points to this order:
+
+1. freeze the legacy graph
+2. make ELK the real default
+3. add group-level local layout
+4. add decision branch templates
+5. add lane rules
+6. add spacing budgets
+7. add sparse overrides
+8. prove it on mail
+
+## Bottom line
+
+Graph V2 should make layout an outcome of semantics, not an act of manual drawing.

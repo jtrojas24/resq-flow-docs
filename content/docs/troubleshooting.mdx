@@ -1,14 +1,65 @@
 ---
 title: Troubleshooting
-description: Common failure modes, validation checks, and debugging paths.
+description: Practical checks for relay, UI, ingest, replay, and docs-site issues.
 ---
 
-This section will collect the practical checks that help verify `resq-flow` is healthy locally.
+Use these checks when `resq-flow` is up but not behaving the way you expect.
 
-## Expected topics
+## First checks
 
-- relay startup and port binding
-- docs-site build or search issues
-- ingest verification
-- local history and live-mode validation
-- integration-specific troubleshooting
+```bash
+make print-endpoints
+make verify-ingest
+make smoke-vector-fanout
+make smoke-relay-ingest
+```
+
+These are the fastest sanity checks before deeper debugging.
+
+## If the app does not start
+
+- make sure Rust `stable` is the default toolchain
+- make sure Bun is on your `PATH`
+- remember that the relay must compile before `make dev` works, so the first startup is slower
+
+## If the UI loads but no data appears
+
+- confirm the shared observability stack from `fullstack` is running
+- verify the Vector fanout path is active
+- use `make print-endpoints` to confirm the relay and UI endpoints
+- use `make verify-ingest` to confirm live ingest is happening
+
+## If replay is not working
+
+- `make replay` expects both the relay and UI to already be running
+- use `make replay-direct` when you want to bypass the shared relay path and isolate the UI experience
+
+## If you need to isolate the relay
+
+Direct mode is available for focused debugging:
+
+- traces: `http://localhost:4200/v1/traces`
+- logs: `http://localhost:4200/v1/logs`
+
+This is useful when you intentionally want to bypass the shared Vector setup.
+
+## Validation commands
+
+```bash
+make test
+cd relay && cargo test
+cd ui && bun test
+cd ui && bun run build
+```
+
+## Docs-site checks
+
+For the docs site itself, use:
+
+```bash
+bun run lint
+bun run types:check
+bun run build
+```
+
+If those pass, the docs shell is healthy and any remaining issues are more likely to be content or integration problems.

@@ -1,0 +1,129 @@
+---
+title: Design system
+description: The visual language, tokens, and shape rules that support resq-flow.
+---
+
+The current design direction is `Slate Refined · Ocean Blue`.
+
+The design system exists to make the UI feel coherent across:
+
+- flow home and metrics views
+- the canvas and inspector
+- logs and run detail
+- status, timing, and semantic node families
+
+## Core color tokens
+
+### Dark mode
+
+| Token | Value | Purpose |
+| --- | --- | --- |
+| `--surface-primary` | `#020617` | app background |
+| `--surface-raised` | `#06101f` | panel and card surfaces |
+| `--surface-overlay` | `#0a1e38` | hover and input surfaces |
+| `--accent-primary` | `#42a5f5` | primary accent |
+| `--border-default` | `rgba(30,58,95,0.7)` | standard borders |
+| `--text-primary` | `#f1f5f9` | primary text |
+| `--text-secondary` | `#4d7fa8` | secondary text |
+
+### Status colors
+
+| State | Token |
+| --- | --- |
+| success | `#34d399` |
+| warning | `#fbbf24` |
+| error | `#f87171` |
+| active | `#42a5f5` |
+| idle | `#4d7fa8` |
+
+## Typography
+
+| Scale | Class | Use |
+| --- | --- | --- |
+| display | `text-2xl font-semibold` | stat values |
+| title | `text-base font-medium` | section headings |
+| body | `text-sm` | panel and log content |
+| label | `text-xs` | badges, headers, filters |
+| canvas | `text-[11px]` | node labels only |
+
+Guidance:
+
+- use `Inter` for normal UI text
+- use monospace only for data such as trace IDs, timestamps, and raw values
+- avoid tiny `text-[9px]` and `text-[10px]` UI text
+
+## Spacing
+
+| Token | Value | Use |
+| --- | --- | --- |
+| panel padding | `px-4 py-3` | major panels |
+| row padding | `py-2` | logs and runs |
+| button padding | `px-3 py-1.5` | standard buttons |
+| card padding | `p-3` | stat cards |
+| side panel width | `w-[440px]` | sheet and drawer panels |
+| bottom drawer | `260px` | bottom log panel default |
+
+## Component guidance
+
+Use shared primitives for common interactions:
+
+- buttons for actions
+- badges for status and metadata
+- inputs and selects for controls
+- tabs for major mode switches
+- sheets for inspector panels
+- tables for runs and logs
+- cards for stats and insights
+
+## Canvas shape language
+
+| Semantic role | Default shape |
+| --- | --- |
+| trigger | pill |
+| queue | rounded rectangle |
+| worker | rounded rectangle |
+| scheduler or process | rounded rectangle |
+| decision | diamond |
+| resource | cylinder |
+| visible detail | rounded rectangle inside a group when possible |
+| note | annotation |
+
+Rules:
+
+- queues, workers, and processes should feel like one family
+- use pills only for external starting conditions
+- avoid turning the main graph into a badge wall
+
+## Semantic color roles
+
+Colors are assigned by semantic role, not per-node.
+
+| Role | Visual intent |
+| --- | --- |
+| `trigger` | external starting condition |
+| `queue` | queue boundary and backlog visibility |
+| `worker` | worker execution family |
+| `scheduler` | temporal scheduling boundary |
+| `process` | first-class business process |
+| `decision` | branching and conditional logic |
+| `resource` | concrete storage or resource boundary |
+
+## Language rules
+
+Prefer:
+
+- `Flow`
+- `Run`
+- `Node`
+- `Logs`
+- `Status`
+- `Timing`
+
+Avoid using `trace`, `span`, `event`, and `telemetry` as the primary UI language outside advanced or raw detail views.
+
+## Anti-patterns
+
+- hardcoding per-node colors in flow files
+- using generic labels like `Data` or `Store` for concrete resources
+- collapsing process and detail into the same visual weight
+- relying on abrupt status swaps instead of deliberate transitions
