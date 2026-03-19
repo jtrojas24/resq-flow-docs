@@ -17,6 +17,11 @@ export default function Home() {
   return (
     <HomeLayout {...baseOptions()}>
       <div className="p-4 flex flex-col items-center justify-center text-center flex-1">
+        <img
+          alt="ResQ Flow logo"
+          className="h-20 w-20 mb-4 rounded-2xl"
+          src="/logo.png"
+        />
         <h1 className="text-xl font-bold mb-2">ResQ Flow Docs</h1>
         <p className="text-fd-muted-foreground mb-4">
           Documentation for running, understanding, and integrating{" "}

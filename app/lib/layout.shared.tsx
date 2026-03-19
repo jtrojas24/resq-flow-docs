@@ -10,7 +10,17 @@ export const gitConfig = {
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: "ResQ Flow Docs",
+      title: (
+        <div className="flex items-center gap-2">
+          <img
+            alt=""
+            aria-hidden="true"
+            className="h-5 w-5"
+            src="/favicon.svg"
+          />
+          <span>ResQ Flow Docs</span>
+        </div>
+      ),
     },
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
   };
