@@ -1,0 +1,91 @@
+---
+title: Telemetry basics
+description: Observability and telemetry in simple terms, plus the pieces that matter for resq-flow.
+---
+
+If you are new to observability tooling, here is the short version.
+
+## What observability means
+
+Observability is the ability to understand what a system is doing from the signals it emits while it runs.
+
+The goal is to answer questions like:
+
+- what happened
+- where did it happen
+- how long did it take
+- what failed
+- what happened right before or after
+
+## What telemetry means
+
+Telemetry is the raw data a system emits so we can observe it later.
+
+In our world, the main telemetry types are:
+
+- `logs`
+  human-readable or structured event records
+- `traces`
+  linked execution spans that show timing and parent-child relationships
+- `metrics`
+  numeric measurements like counters, rates, and latency summaries
+
+## What OTLP means
+
+`OTLP` is the transport format used by OpenTelemetry tools to send telemetry around.
+
+For us, the important idea is simple:
+
+- `resq-agent` emits OTLP
+- `Vector` receives it
+- the stack routes it to the places that need it
+
+## The stack pieces in plain English
+
+### resq-agent
+
+`resq-agent` is a producer. It emits the traces and logs that describe real queue, worker, and process activity.
+
+### Vector
+
+`Vector` is the collector and router.
+
+It receives telemetry once and fans it out to multiple downstream systems.
+
+### Victoria
+
+`VictoriaLogs`, `VictoriaTraces`, and `VictoriaMetrics` are the durable storage and query surfaces in the local stack.
+
+If you want long-lived storage and flexible querying, this is the primary source of truth.
+
+### resq-flow relay
+
+The Rust relay is the flow-aware consumer.
+
+It receives traces and logs, normalizes them into a shared `FlowEvent` model, applies exact flow matching, and streams them to the UI.
+
+### resq-flow UI
+
+The Vite UI is the presentation layer.
+
+It turns those normalized flow events into:
+
+- graph views
+- log views
+- run and journey views
+- inspectors and flow detail
+
+## Why resq-flow exists on top of this stack
+
+Logs, traces, and metrics are necessary, but they are not automatically shaped around a product flow.
+
+`resq-flow` exists to add that missing layer:
+
+- execution boundaries become easier to see
+- meaningful steps stay visible
+- low-value noise can stay in deeper views
+- the same flow model can drive both live and historical understanding
+
+Telemetry is the raw material.
+
+`resq-flow` is one of the tools that turns that raw material into something easier to reason about.

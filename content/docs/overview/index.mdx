@@ -1,0 +1,74 @@
+---
+title: Why resq-flow
+description: What problem resq-flow solves and why it exists on top of the shared telemetry stack.
+---
+
+`resq-flow` exists because raw telemetry is useful, but it is not always easy to think with.
+
+Teams already have logs, traces, metrics, and dashboards. The problem is that a real product flow still gets scattered across too many low-level surfaces:
+
+- a queue handoff is in one place
+- worker execution is in another
+- a decision or status change is buried in logs
+- the end-to-end story is hard to see quickly
+
+That is the problem `resq-flow` is trying to solve.
+
+## The problem with the current telemetry experience
+
+The shared observability stack already gives us durable storage and query power.
+
+What it does not give us by default is a flow-shaped view that answers questions like:
+
+- what path did this run take
+- where is work currently sitting
+- which boundary actually failed
+- which details matter, and which ones are just exhaust
+
+Traditional observability tools are still necessary, but they are often too raw for understanding a business or worker flow at a glance.
+
+## The resq-flow solution
+
+`resq-flow` is a flow-oriented visualization and detail tool built on top of the telemetry we already emit.
+
+It is meant to:
+
+- make the execution spine visible
+- keep queue and worker boundaries operationally truthful
+- show meaningful decisions and processes as first-class when they deserve it
+- keep drill-down rich without promoting every write or helper step into a node
+- give the same flow model to live views, history views, logs, and future run-level tooling
+
+In short, `resq-flow` turns shared telemetry into a flow-shaped product experience.
+
+## What resq-flow is not
+
+`resq-flow` is not:
+
+- a replacement for Victoria
+- a separate observability database
+- a one-off custom graph for one flow
+- a graph toy that ignores the actual runtime boundaries
+
+The durable storage and query source of truth still lives elsewhere. `resq-flow` is the flow-aware consumer and presentation layer.
+
+## The one true shape
+
+The normal path is:
+
+```text
+resq-agent -> OTLP -> Vector -> Victoria
+                           -> resq-flow relay -> WebSocket -> UI
+```
+
+That means:
+
+- producers emit once
+- `Vector` fans out
+- `Victoria` remains primary storage and query
+- `resq-flow` focuses on visualization, history, and flow-aware detail
+
+## Where to go next
+
+- [Telemetry basics](/docs/overview/telemetry-basics) explains observability and telemetry in plain English.
+- [Architecture](/docs/overview/architecture) explains the shared stack, ownership boundaries, and the `Vite UI + Rust relay` split.

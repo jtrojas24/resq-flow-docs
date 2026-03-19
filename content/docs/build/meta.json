@@ -1,0 +1,12 @@
+{
+  "title": "Build",
+  "description": "How to run resq-flow, connect it to resq-agent, and add new flows.",
+  "root": true,
+  "pages": [
+    "index",
+    "local-setup",
+    "resq-agent-integration",
+    "adding-a-flow",
+    "troubleshooting"
+  ]
+}

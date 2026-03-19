@@ -1,0 +1,102 @@
+---
+title: Signal and detail
+description: Why the graph stays sparse, why queues remain prominent, and how we decide what telemetry should surface by default.
+---
+
+## Graph shape principles
+
+These are the working rules sharpened during the mail-pipeline review.
+
+- real queue and worker boundaries stay first-class
+- queues are hub anchors with reserved breathing room
+- meaningful decisions and processes can also be first-class
+- important does not automatically mean first-class
+- shared queue and worker lanes can host multiple job types
+- shared queue fan-in should converge before the queue
+
+The graph should stay honest about execution ownership even when a sketch or architecture diagram shows more context than the production graph.
+
+## Sparse graph, rich drill-down
+
+Do not promote every write, enqueue, or helper step into a node.
+
+Instead:
+
+- keep the graph readable
+- keep the detail visible, but default it into the sidebar before the canvas
+- use grouped child rows, edge pulses, side panels, and resource drill-down
+
+Practical rule:
+
+- notes should default to the sidebar, not the canvas
+- canvas annotations should be reserved for rare graph-critical clarifications
+- resource-specific notes should live in drill-down first
+
+## Process and detail are not the same
+
+`process` means a first-class execution boundary with meaningful independent drill-down.
+
+`detail` means subordinate work, state change, or explanatory context attached to a parent.
+
+Use `process` when the thing should independently support:
+
+- status
+- latest run or last seen
+- timing
+- logs
+
+Use `detail` when the thing is better shown as:
+
+- a grouped child row
+- a side-effect card
+- a queue handoff detail
+- a sidebar note
+
+## Signal-first default surfaces
+
+When a user selects a first-class node, the default experience should answer:
+
+- what this node is responsible for
+- what happened the last time it meaningfully ran
+- what bigger run or trace it participated in
+- what changed because this node ran
+
+Default node detail should not behave like a raw log tail.
+
+It should prefer:
+
+- meaningful events
+- important operational events with real consequence
+- the bigger-picture run context this node was part of
+
+## Severity beats filtering
+
+Filtering should be aggressive by default, but never at the cost of hiding meaningful risk.
+
+Always surface by default:
+
+- errors
+- retries
+- warnings
+- stuck or long-running states
+- manual intervention and approval pauses
+- important skipped or dropped outcomes
+- durable writes or handoffs that materially affect downstream behavior
+
+Important non-error examples include things like:
+
+- draft created
+- cursor written
+- contacts upserted
+- recompute enqueued
+- send enqueued
+
+## Canvas and logs should agree
+
+Canvas-side node detail and the default logs view should use the same show or hide philosophy.
+
+That does not mean they must render the same layout, but they should agree on what counts as default-surface telemetry:
+
+- meaningful by default
+- selected operational by default
+- raw behind advanced or show-all

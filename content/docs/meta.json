@@ -1,13 +1,3 @@
 {
-  "pages": [
-    "index",
-    "getting-started",
-    "concepts",
-    "adding-a-flow",
-    "foundations",
-    "graph-v2",
-    "design-system",
-    "integrations",
-    "troubleshooting"
-  ]
+  "pages": ["overview", "principles", "product", "build"]
 }

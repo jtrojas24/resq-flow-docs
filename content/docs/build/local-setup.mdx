@@ -1,5 +1,5 @@
 ---
-title: Getting started
+title: Local setup
 description: Run resq-flow locally, use the preferred topology, and verify that ingest works.
 ---
 
@@ -27,22 +27,6 @@ Use `resq-flow` behind the shared Vector stack by default.
 3. Let Vector fan out a filtered copy of traces and logs to `http://host.docker.internal:4200`.
 4. Verify endpoints with `make print-endpoints`.
 5. Verify live ingest with `make verify-ingest`.
-
-## Topology
-
-```text
-producer(s) -> Vector -> VictoriaLogs / VictoriaTraces / VictoriaMetrics
-                     \
-                      -> resq-flow relay -> WebSocket -> UI
-```
-
-The applied local Vector runtime config lives in `fullstack` at:
-
-- `observability/vector/vector.yaml`
-
-This repo also keeps a discoverable example snippet in:
-
-- `examples/vector/resq-flow-fanout.yaml`
 
 ## Development
 
@@ -89,9 +73,3 @@ cd relay && cargo test
 cd ui && bun test
 cd ui && bun run build
 ```
-
-## Practical caveats
-
-- the Rust relay must compile before `make dev` works, so the first run is slower
-- `make replay` expects the relay and UI to already be running
-- `make replay-direct` is useful when you want to test the UI path without the full relay loop

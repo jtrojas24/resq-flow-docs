@@ -1,0 +1,6 @@
+{
+  "title": "Principles",
+  "description": "How we think about first-class nodes, useful signal, and sparse flow visualization.",
+  "root": true,
+  "pages": ["index", "first-class-nodes", "signal-and-detail"]
+}

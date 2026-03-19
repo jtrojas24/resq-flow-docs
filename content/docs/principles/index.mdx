@@ -1,0 +1,31 @@
+---
+title: How we think
+description: The core mental model behind resq-flow before you look at product screens or implementation files.
+---
+
+`resq-flow` works best when we are explicit about what belongs in the graph and what does not.
+
+These principles exist so we do not guess our way into a noisy or misleading flow view.
+
+## The core ideas
+
+- real queue and worker boundaries stay first-class by default
+- meaningful decisions and processes can also be first-class
+- important does not automatically mean first-class
+- the graph should stay sparse while drill-down stays rich
+- canvas detail and logs should agree on what counts as useful default signal
+- the spec should come before implementation
+
+## Why this matters
+
+Without a clear mental model, one of two bad things happens:
+
+- every important write, handoff, or helper step becomes a node
+- or the graph stops being truthful about the actual runtime boundaries
+
+`resq-flow` is trying to avoid both.
+
+## What to read next
+
+- [First-class nodes](/docs/principles/first-class-nodes) explains the node, detail, and non-graph buckets.
+- [Signal and detail](/docs/principles/signal-and-detail) explains how we decide what should surface by default and why the graph should stay sparse.
