@@ -1,0 +1,134 @@
+---
+title: Future state
+description: The north-star product vision for resq-flow as a flow-oriented observability tool.
+---
+
+This page is the north star for `resq-flow` as a real observability product.
+
+It is not just a backlog page. It explains what we are trying to turn the tool into so architecture, flow contracts, design-system decisions, and feature work all point in the same direction.
+
+## Product identity
+
+`resq-flow` is a flow-oriented observability product.
+
+It is not just:
+
+- a graph canvas
+- a log viewer
+- a metrics dashboard
+
+It is the place where those views come together around one flow model.
+
+The core navigation model is:
+
+```text
+Flows Home -> Flow (Canvas | Metrics | Logs) -> Run -> Node -> Logs / Spans
+```
+
+That means the graph is one lens, not the whole product.
+
+## What the future product should feel like
+
+The future state should let a user answer questions at several levels without changing mental models.
+
+### Flows Home
+
+The landing page should answer:
+
+`Are my systems healthy right now?`
+
+It should show a multi-flow view with:
+
+- flow health
+- run counts
+- success rate
+- latency trends
+- error trends
+
+### Flow view
+
+Inside one flow, the user should be able to switch between equal first-class modes:
+
+- `Canvas`
+  for topology and live execution shape
+- `Metrics`
+  for health, trend, and recent-run understanding
+- `Logs`
+  for raw detail and pattern debugging
+
+This matters because some flows will be graph-heavy, while others may stay headless or log-first for a while.
+
+### Run detail
+
+A run should feel like one coherent execution story, not a scattered pile of spans.
+
+The product should support:
+
+- run summaries
+- timing breakdowns
+- waterfall views
+- failure context
+- navigation from run to node to raw evidence
+
+### Node detail
+
+Selecting a node should explain meaning before exhaust.
+
+The default experience should prioritize:
+
+- what this node is
+- what it is responsible for
+- recent outcomes
+- important logs and side effects
+- timing when timing matters
+
+## Live and history are both core
+
+The future product should make `live` and `history` feel like two intentional paths, not one overloaded screen.
+
+- `live`
+  for watching execution happen now
+- `history`
+  for time-ranged investigation, replay, and trend analysis
+
+Both should use the same flow semantics, contract model, and node vocabulary.
+
+## What this means for the telemetry model
+
+The future product only works if the telemetry model stays coherent.
+
+That means:
+
+- producers emit once into the shared stack
+- `Vector` keeps routing and fanout simple
+- `Victoria` remains the storage and query source of truth
+- `resq-flow` remains the flow-aware consumer and presentation layer
+- contracts and node semantics must be reusable across graph, logs, metrics, and run detail
+
+This is why the future state is not just a UI idea. It depends on the same principles and architecture described elsewhere in the docs.
+
+## The next big capability layers
+
+The current future-state plan points toward a few major additions:
+
+- relay-backed aggregate metrics and health data
+- replacing mock metrics with real relay queries
+- run comparison and richer waterfall analysis
+- error intelligence and grouped failure patterns
+- richer flow contracts with health and metrics preferences
+- annotations, bookmarks, and collaboration features
+
+## Why this belongs in the docs
+
+If we only document current screens and current commands, the project starts to feel smaller than it really is.
+
+This page exists so teammates can see that `resq-flow` is becoming a broader observability tool:
+
+- flow-aware
+- telemetry-backed
+- graph-capable
+- log-capable
+- metrics-capable
+- useful even when a flow is still headless
+
+That is the future shape we should keep building toward.
