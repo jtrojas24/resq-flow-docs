@@ -1,0 +1,48 @@
+---
+title: Product surfaces
+description: The main views and navigation model for resq-flow as a flow-oriented observability product.
+---
+
+`resq-flow` is a flow-oriented observability product, not just a graph viewer.
+
+The intended mental model is:
+
+```text
+Flow -> Graph / Logs / History -> Run -> Node -> Detail
+```
+
+The graph is one view, not the whole product.
+
+## Current product shape
+
+The product is meant to bring together:
+
+- graph-backed flow understanding
+- traditional logs and detail views
+- live execution visibility
+- history and run-level investigation
+- inspectors that explain what a node means, not just that it emitted spans
+
+## Why multiple surfaces matter
+
+Different questions need different views.
+
+- use the graph when you need topology and execution shape
+- use logs when you need raw detail and pattern search
+- use run and journey views when you need one concrete execution story
+- use inspectors when you need meaning, not just raw attributes
+
+## Graph-backed and headless flows
+
+Not every flow needs a canvas on day one.
+
+`resq-flow` supports:
+
+- graph-backed flows with a rich visual map
+- headless flows where logs, history, and detail come first
+
+That keeps the product useful even before every flow has a polished graph.
+
+## The north star
+
+The long-term direction is a product where graph, logs, metrics, and run detail are different lenses over the same flow model rather than disconnected tools.

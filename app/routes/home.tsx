@@ -29,7 +29,7 @@ export default function Home() {
         </p>
         <Link
           className="text-sm bg-fd-primary text-fd-primary-foreground rounded-full font-medium px-4 py-2.5"
-          to="/docs"
+          to="/docs/overview"
         >
           Open docs
         </Link>

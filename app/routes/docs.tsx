@@ -9,6 +9,7 @@ import {
   MarkdownCopyButton,
   ViewOptionsPopover,
 } from "fumadocs-ui/layouts/docs/page";
+import { redirect } from "react-router";
 import { getMDXComponents } from "@/components/mdx";
 import { baseOptions, gitConfig } from "@/lib/layout.shared";
 import { getPageImagePath } from "@/lib/og";
@@ -16,7 +17,10 @@ import { source } from "@/lib/source";
 import type { Route } from "./+types/docs";
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const slugs = params["*"].split("/").filter((v) => v.length > 0);
+  const raw = params["*"] ?? "";
+  const slugs = raw.split("/").filter((v) => v.length > 0);
+  if (slugs.length === 0) return redirect("/docs/overview");
+
   const page = source.getPage(slugs);
   if (!page) throw new Response("Not found", { status: 404 });
 
@@ -69,7 +73,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
   const markdownUrl = `/llms.mdx/docs/${slugs.join("/")}`;
 
   return (
-    <DocsLayout {...baseOptions()} tree={pageTree}>
+    <DocsLayout {...baseOptions()} tabMode="top" tree={pageTree}>
       {clientLoader.useContent(path, { markdownUrl, path, imagePath })}
     </DocsLayout>
   );

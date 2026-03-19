@@ -1,0 +1,66 @@
+---
+title: Using with resq-agent
+description: How resq-flow fits into resq-agent and what the agent side needs to do for the flow experience to work.
+---
+
+The current primary consumer of `resq-flow` is `resq-agent`.
+
+## Integration shape
+
+The important contract is:
+
+- `resq-agent` emits OTLP once
+- `Vector` fans out to Victoria and `resq-flow`
+- `Victoria` remains the storage and query source of truth
+- `resq-flow` consumes the live stream and renders a flow-oriented view on top
+
+## What resq-agent owns
+
+`resq-agent` owns the runtime truth.
+
+That means it owns:
+
+- queue boundaries
+- worker boundaries
+- function naming
+- stage and detail telemetry
+- meaningful process and decision semantics
+
+If those producer-side semantics are vague, `resq-flow` has to guess, which is exactly what we want to avoid.
+
+## What resq-flow owns
+
+`resq-flow` owns:
+
+- the shared flow contract JSON
+- the optional graph-backed UI view
+- replay fixtures
+- relay and UI tests
+- the normalized live and history experience
+
+There is not a second graph JSON file.
+
+Today the required JSON file on the `resq-flow` side is the shared flow contract, while the rich graph configuration still lives in TypeScript.
+
+## Shared-stack expectations
+
+The default expectation should be:
+
+- one shared OTLP path
+- one durable storage and query source of truth
+- one flow contract boundary
+- optional richer graph presentation layered on later
+
+## Adding a new resq-agent-backed flow
+
+Do not start by drawing boxes.
+
+Start by:
+
+1. writing the flow telemetry spec
+2. making the runtime boundaries real in `resq-agent`
+3. adding the shared contract in `resq-flow`
+4. deciding whether the first release is headless or graph-backed
+5. adding replay and tests
+
+The file-by-file checklist lives in [Adding a flow](/docs/build/adding-a-flow).

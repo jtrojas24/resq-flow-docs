@@ -52,29 +52,6 @@ Guidance:
 - use monospace only for data such as trace IDs, timestamps, and raw values
 - avoid tiny `text-[9px]` and `text-[10px]` UI text
 
-## Spacing
-
-| Token | Value | Use |
-| --- | --- | --- |
-| panel padding | `px-4 py-3` | major panels |
-| row padding | `py-2` | logs and runs |
-| button padding | `px-3 py-1.5` | standard buttons |
-| card padding | `p-3` | stat cards |
-| side panel width | `w-[440px]` | sheet and drawer panels |
-| bottom drawer | `260px` | bottom log panel default |
-
-## Component guidance
-
-Use shared primitives for common interactions:
-
-- buttons for actions
-- badges for status and metadata
-- inputs and selects for controls
-- tabs for major mode switches
-- sheets for inspector panels
-- tables for runs and logs
-- cards for stats and insights
-
 ## Canvas shape language
 
 | Semantic role | Default shape |
@@ -94,20 +71,6 @@ Rules:
 - use pills only for external starting conditions
 - avoid turning the main graph into a badge wall
 
-## Semantic color roles
-
-Colors are assigned by semantic role, not per-node.
-
-| Role | Visual intent |
-| --- | --- |
-| `trigger` | external starting condition |
-| `queue` | queue boundary and backlog visibility |
-| `worker` | worker execution family |
-| `scheduler` | temporal scheduling boundary |
-| `process` | first-class business process |
-| `decision` | branching and conditional logic |
-| `resource` | concrete storage or resource boundary |
-
 ## Language rules
 
 Prefer:
@@ -120,10 +83,3 @@ Prefer:
 - `Timing`
 
 Avoid using `trace`, `span`, `event`, and `telemetry` as the primary UI language outside advanced or raw detail views.
-
-## Anti-patterns
-
-- hardcoding per-node colors in flow files
-- using generic labels like `Data` or `Store` for concrete resources
-- collapsing process and detail into the same visual weight
-- relying on abrupt status swaps instead of deliberate transitions

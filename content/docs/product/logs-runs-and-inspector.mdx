@@ -1,0 +1,66 @@
+---
+title: Logs, runs, and inspector
+description: How traditional logs, run-level understanding, and node inspectors fit alongside the graph.
+---
+
+The graph is not enough by itself.
+
+Users will naturally move between the visual flow, raw logs, and run-specific detail.
+
+## Logs
+
+Logs remain the raw detail surface.
+
+They are still where you go for:
+
+- exact messages
+- structured attributes
+- error context
+- low-level debugging
+
+But the goal is that logs do not have to carry the whole product experience alone.
+
+## Runs and journeys
+
+A useful flow product should let a user reason about one concrete execution path, not just one node at a time.
+
+That means:
+
+- following a run or journey through multiple nodes
+- seeing what happened before and after an error
+- understanding which boundary actually changed the outcome
+
+## Inspector and sidebar
+
+The inspector should be meaning-first.
+
+For a process or node, it should prioritize:
+
+- what this thing does
+- recent outcomes and status
+- related notes or caveats
+- related resources and side effects
+- useful recent logs
+
+Timing is important, but it should not dominate the inspector before the meaning of the node is clear.
+
+## Live and history
+
+These are two intentional paths, not one overloaded screen:
+
+- `live`
+  for watching execution happen now
+- `history`
+  for replaying or investigating what already happened
+
+The product should use the same flow semantics for both.
+
+## One filtering model
+
+Canvas detail and default logs should share the same signal rules:
+
+- meaningful by default
+- selected operational by default
+- raw behind advanced or show-all
+
+That keeps the product feeling coherent instead of teaching users two conflicting mental models.

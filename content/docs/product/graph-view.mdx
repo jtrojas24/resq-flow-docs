@@ -1,0 +1,62 @@
+---
+title: Graph view
+description: How the graph is supposed to work today and where Graph V2 is taking it next.
+---
+
+The graph should help a user understand the execution spine of a flow without drowning them in low-value detail.
+
+## What the graph should show
+
+The backbone should be built from:
+
+- queues
+- workers
+- important decisions
+- important processes
+- major triggers when present
+
+Detail explains the backbone. It should not define the backbone.
+
+## What the graph should not become
+
+The graph should not become:
+
+- a badge wall
+- a hand-placed sketch frozen in code
+- a second logs table
+- a place where every write or helper call becomes a node
+
+## Graph V2 direction
+
+Graph V2 is the direction for making layout an outcome of semantics rather than manual coordinates.
+
+That means:
+
+- the flow spec decides what exists
+- the graph config declares structure and ownership
+- the design system decides how things look
+- the layout system decides where things go
+- overrides are rare polish, not the default authoring model
+
+## Current Graph V2 rules
+
+- one layout authority
+- hierarchical layout
+- first-class nodes form the backbone
+- groups are real containers
+- notes must be anchored
+- overrides are allowed, but rare
+- process and detail must stay distinct
+- first-class node telemetry should default to signal, not exhaust
+
+## Why this matters
+
+Dense flows like mail are where weak graph rules start to fail.
+
+The graph system has to be strong enough to keep:
+
+- queues prominent
+- branch outcomes readable
+- resources visible without taking over the map
+- notes secondary
+- detail rich without breaking the main story

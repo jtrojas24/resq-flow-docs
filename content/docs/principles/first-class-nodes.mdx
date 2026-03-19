@@ -1,0 +1,101 @@
+---
+title: First-class nodes
+description: How we decide what deserves to be a real graph node versus attached detail or non-graph telemetry.
+---
+
+The foundation docs exist to make graph semantics explicit before implementation starts.
+
+The goal is to avoid two failure modes:
+
+- everything important becomes a graph node
+- `resq-flow` has to infer graph semantics from arbitrary telemetry richness
+
+## The three buckets
+
+### First-class nodes
+
+These are real graph nodes. A thing is first-class when it is:
+
+- an independently meaningful execution unit
+- worth showing as its own node
+- bound directly by producer code
+- backed by a canonical span boundary
+- worth lighting independently
+- worth clicking for drill-down
+
+Common first-class kinds:
+
+- queue
+- worker
+- decision
+- process
+- store
+
+### Node-attached details
+
+These are important, but not first-class nodes.
+
+They may appear as:
+
+- grouped child rows
+- detail-panel entries
+- edge activity
+- badges or substeps
+- clickable subordinate items
+
+They should not:
+
+- own a canonical `component_id`
+- require independent node identity
+- light up as fake standalone nodes
+
+### Non-graph telemetry
+
+This telemetry is still valuable for search, debugging, logs, traces, and future views, but it should not shape graph presence.
+
+## Hard rules
+
+- canonical producer binding decides first-class presence
+- telemetry attached as stage, detail, or artifact information is not first-class
+- first-class node presence should come from canonical spans, not logs alone
+- detail telemetry may animate edges, groups, and panels without becoming nodes
+- real queue and worker boundaries should remain first-class by default
+
+## Drill-down model
+
+Artifacts and resources are not automatically first-class nodes.
+
+Usually they should be represented as:
+
+- data attached to a first-class node
+- related panels and details
+- resource references
+- edge or group-level context
+
+Good examples:
+
+- an S3 write shown under the process that performed it
+- a Postgres mutation shown in the node inspector
+- queue depth or enqueue metadata shown on a queue or queue-facing edge
+- external call results shown on the calling worker or process
+
+Keep the graph sparse. Keep the drill-down rich.
+
+## Node catalogs
+
+A node catalog is the declared list of first-class graph nodes for a flow.
+
+Each entry should be:
+
+- stable
+- directly bound by producers
+- backed by a canonical span
+- graph-worthy
+- valuable to inspect
+
+Naming guidance:
+
+- first-class node IDs: short, semantic, kebab-case
+- stage and detail IDs: dotted action names
+- resource anchors: simple lowercase IDs like `postgres` and `s3`
+- display labels: human-readable, not forced to match canonical IDs

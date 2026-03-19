@@ -1,0 +1,133 @@
+---
+title: Architecture
+description: The shared observability topology, ownership boundaries, and the internal Vite UI plus Rust relay architecture.
+---
+
+## One true topology
+
+`resq-flow` is a consumer of the shared local observability stack, not a parallel pipeline.
+
+```text
+producer(s) -> Vector -> VictoriaLogs
+                     -> VictoriaTraces
+                     -> VictoriaMetrics
+                     -> resq-flow relay -> WebSocket -> UI
+```
+
+The core architectural rule is simple:
+
+- producers emit OTLP to `Vector`
+- `Vector` fans out
+- `Victoria` remains primary storage and query
+- `resq-flow` stays focused on flow-oriented visualization and detail
+
+## Ownership
+
+- `fullstack` owns the applied local Vector runtime config
+- producers such as `resq-agent` send telemetry to `Vector`
+- `resq-flow` owns the relay, UI, normalized flow model, tests, and example fanout snippet
+
+That means the normal path is shared-stack first, not direct-to-`resq-flow`.
+
+## Internal resq-flow architecture
+
+`resq-flow` itself has two services:
+
+- `relay/`
+  a Rust service that receives OTLP traces and logs, applies flow contracts, and publishes normalized live updates
+- `ui/`
+  a Vite + React UI that renders graph-backed and headless flow experiences
+
+This split matters because the relay owns the telemetry contract and the UI owns presentation.
+
+## Responsibilities by layer
+
+### Vector
+
+Vector is the collector and router.
+
+Its job for `resq-flow` is intentionally limited:
+
+- accept OTLP once
+- keep Victoria sinks as the primary path
+- apply coarse, cheap pre-filtering for the `resq-flow` fanout
+- forward traces and logs to `resq-flow`
+- keep the `resq-flow` sink best-effort so relay issues do not endanger Victoria
+
+### Relay
+
+The relay is the contract-aware live consumer.
+
+It:
+
+- receives OTLP traces and logs
+- normalizes them into `FlowEvent`
+- loads flow contracts from `ui/src/flow-contracts`
+- applies exact contract matching plus context retention
+- tags kept events with `matched_flow_ids`
+- stores a recent in-memory buffer for reconnect snapshots
+- publishes WebSocket `snapshot` and `batch` envelopes
+- uses the same contract-driven flow filtering for history fetches
+
+### UI
+
+The UI is the presentation layer.
+
+It:
+
+- consumes relay WebSocket envelopes in append-only batches
+- uses `matched_flow_ids` instead of re-implementing coarse flow matching
+- keeps live mode separate from paced history playback
+- supports both graph-backed flows and headless flows
+
+## The two-layer flow model
+
+Each flow is split into two concerns.
+
+### Shared JSON contract
+
+Location:
+
+- `ui/src/flow-contracts/<flow-id>.json`
+
+This is the shared boundary used by both relay and UI registry. It defines:
+
+- flow identity
+- telemetry matching rules
+- context retention rules
+
+### Optional TypeScript view config
+
+Location:
+
+- `ui/src/flows/<flow-id>.ts`
+
+This is only for rich UI concerns:
+
+- graph nodes and edges
+- span-to-node mapping
+- view-specific presentation
+
+If the TypeScript view config is absent, the flow can still exist as a headless flow.
+
+## Live and history
+
+There are two intentional paths:
+
+### Live
+
+```text
+Vector -> relay ingest -> contract match -> matched_flow_ids -> WS snapshot/batch -> UI
+```
+
+### History
+
+```text
+UI -> relay history API -> Victoria queries -> normalized events -> contract filter -> UI
+```
+
+The important idea is consistency:
+
+- live and history should use the same flow semantics
+- the relay should stay the canonical flow filter
+- the UI should not invent a different matching model

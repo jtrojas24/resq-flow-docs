@@ -63,7 +63,7 @@ README.md
 ### What each file is doing in the mail flow
 
 - `crates/resq-mail/src/queue/jobs.rs`
-  declares the queue names and function names such as `rrq:queue:mail-incoming`, `handle_mail_incoming_check`, and `handle_mail_send_reply`
+  declares queue names and function names such as `rrq:queue:mail-incoming` and `handle_mail_incoming_check`
 - `crates/resq-mail/src/queue/mod.rs`
   is the enqueue boundary that records queue handoff telemetry
 - `crates/resq-mail/src/bin/resq-mail-runner.rs`
@@ -127,7 +127,7 @@ ui/src/core/hooks/__tests__/useTraceJourney.test.ts
 - `ui/src/flow-contracts/mail-pipeline.json`
   declares the stable flow ID, the flow name, telemetry match rules, and context retention policy
 - `ui/src/flows/mail-pipeline.ts`
-  declares the graph nodes, edges, and `spanMapping`
+  declares graph nodes, edges, and `spanMapping`
 - `ui/src/flows/index.ts`
   registers the flow so the UI can load the rich view when it exists and fall back to a headless flow when it does not
 - `ui/src/test/fixtures/mail-pipeline-replay.json`
@@ -204,14 +204,3 @@ Before calling the flow done, make sure:
 - queue and worker boundaries still read truthfully
 - the graph stays sparse while drill-down stays rich
 - the logs and canvas agree on what counts as default-surface signal
-
-## Mail pipeline as the model
-
-If you want to copy the current working pattern, use mail as the template:
-
-- spec: `resq-agent/jrodocs/current/03-15-26/foundation/mail-flow-telemetry-spec.md`
-- contract: `resq-flow/ui/src/flow-contracts/mail-pipeline.json`
-- graph view: `resq-flow/ui/src/flows/mail-pipeline.ts`
-- replay fixture: `resq-flow/ui/src/test/fixtures/mail-pipeline-replay.json`
-
-That combination is the clearest example of the current intended authoring model.
