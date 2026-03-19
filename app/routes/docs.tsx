@@ -44,7 +44,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
   ) {
     return (
       <DocsPage toc={toc}>
-        <title>{frontmatter.title}</title>
+        <title>{`${frontmatter.title} | ResQ Flow Docs`}</title>
         <meta name="description" content={frontmatter.description} />
         <meta property="og:image" content={imagePath} />
         <DocsTitle>{frontmatter.title}</DocsTitle>

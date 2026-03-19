@@ -28,6 +28,13 @@ This split matters because it lets a flow exist as:
 - a rich graph-backed flow
 - or a headless flow with history and logs first
 
+Today the concrete shape is:
+
+- `resq-agent` owns queue and worker truth plus emitted telemetry
+- `resq-flow` owns the contract JSON, optional graph view, replay fixture, and flow-specific tests
+- the only required JSON file on the `resq-flow` side is the shared contract
+- the graph view, if present, still lives in `ui/src/flows/<flow-id>.ts`
+
 ## Vector fanout rules
 
 The current preferred approach is intentionally coarse:
@@ -48,6 +55,20 @@ When integrating another consumer with `resq-flow`, the default expectation shou
 - one flow contract boundary
 - optional richer graph presentation layered on later
 
+## Adding a new flow
+
+For a new flow, do not start by drawing boxes.
+
+Start by:
+
+1. writing the flow telemetry spec
+2. making the runtime boundaries real in `resq-agent`
+3. adding the shared flow contract in `resq-flow`
+4. deciding whether the first release is headless or graph-backed
+5. adding replay and tests
+
+The concrete file-by-file checklist lives in [Adding a flow](/docs/adding-a-flow).
+
 ## Future consumers
 
 The same model can support future `fullstack` usage without changing the core contract:
@@ -63,5 +84,4 @@ The same model can support future `fullstack` usage without changing the core co
 ## Planned guides
 
 - using `resq-flow` with `resq-agent`
-- flow contracts and producer expectations
 - local observability fanout and runtime expectations
