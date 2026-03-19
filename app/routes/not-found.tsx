@@ -3,7 +3,7 @@ import { DefaultNotFound } from "fumadocs-ui/layouts/home/not-found";
 import { baseOptions } from "@/lib/layout.shared";
 
 export function meta() {
-  return [{ title: "Not Found" }];
+  return [{ title: "Not Found | ResQ Flow Docs" }];
 }
 
 export default function NotFound() {

@@ -4,7 +4,7 @@ import { baseOptions } from "@/lib/layout.shared";
 
 export function meta() {
   return [
-    { title: "resq-flow docs" },
+    { title: "ResQ Flow Docs" },
     {
       name: "description",
       content:
@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <HomeLayout {...baseOptions()}>
       <div className="p-4 flex flex-col items-center justify-center text-center flex-1">
-        <h1 className="text-xl font-bold mb-2">resq-flow docs</h1>
+        <h1 className="text-xl font-bold mb-2">ResQ Flow Docs</h1>
         <p className="text-fd-muted-foreground mb-4">
           Documentation for running, understanding, and integrating{" "}
           <code>resq-flow</code>.

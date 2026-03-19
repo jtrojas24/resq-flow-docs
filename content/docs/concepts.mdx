@@ -36,6 +36,12 @@ The TypeScript view config is optional. It adds rich view concerns such as:
 
 If a flow has no TypeScript view config yet, it can still exist as a headless flow for history, logs, trace detail, and future non-graph views.
 
+Today that means:
+
+- the required JSON file is the shared flow contract
+- the rich graph view, if present, still lives in TypeScript
+- a new flow can ship as headless before it ships as a canvas
+
 ## Relay behavior
 
 The Rust relay:
@@ -69,6 +75,11 @@ That means:
 - exception paths often belong in side branches or notes instead of the main happy path
 - architecture sketches can show more than the final graph, but the product graph should stay honest about execution ownership
 
+Two newer rules matter here too:
+
+- process and detail should not collapse into the same inspector or visual treatment
+- notes should default to the sidebar before they become canvas annotations
+
 ## Spec-first workflow
 
 The preferred flow-author workflow is:
@@ -77,3 +88,5 @@ The preferred flow-author workflow is:
 2. classify each item as first-class, visible detail, or hidden detail
 3. update the flow spec
 4. implement producer and graph changes against that declared shape
+
+For the concrete repo and file checklist, see [Adding a flow](/docs/adding-a-flow).

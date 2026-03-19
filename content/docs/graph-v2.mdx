@@ -57,6 +57,12 @@ Notes and annotations should attach to:
 - an edge
 - a branch outcome
 
+In practice:
+
+- notes should default to the sidebar before the canvas
+- canvas annotations should be rare and graph-critical
+- resource notes should live in drill-down unless they materially improve comprehension
+
 ### 6. Overrides are allowed, but rare
 
 Support:
@@ -87,10 +93,14 @@ First-class nodes should dominate. Detail should recede. Resources should stay v
 - real queue and worker boundaries stay first-class
 - queues are hub anchors and need breathing room
 - important does not automatically mean first-class
+- shared queue and worker lanes can host multiple job types
 - shared queue fan-in should converge before the queue
 - graphs should stay sparse while drill-down stays rich
 - process and detail are not the same thing
 - trigger and cron should not share meaning
+- first-class node telemetry should default to signal, not exhaust
+- severity beats filtering
+- canvas and logs should share the same default signal rules
 - spec should come before implementation
 
 ## Current reusable patterns
@@ -103,7 +113,24 @@ The current pattern log highlights a few patterns worth preserving:
 - grouped exception lanes
 - implicit shared queue re-entry
 - queue hub clearance and shared fan-in
+- signal-first telemetry classification
 - light branch collision cleanup
+
+## Telemetry defaults
+
+Graph V2 is also a content and filtering problem, not only a layout problem.
+
+For first-class nodes, the default experience should show:
+
+- meaningful events
+- selected operational events
+- anything high-severity or intervention-worthy
+
+It should avoid defaulting to:
+
+- generic span lifecycle noise
+- low-signal tracing exhaust
+- background chatter that did not materially change the run
 
 ## Authoring model
 
