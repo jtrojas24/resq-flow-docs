@@ -2,5 +2,11 @@
   "title": "Product",
   "description": "How the resq-flow product is shaped across graph, logs, runs, and inspectors.",
   "root": true,
-  "pages": ["index", "graph-view", "logs-runs-and-inspector", "design-system"]
+  "pages": [
+    "index",
+    "graph-view",
+    "logs-runs-and-inspector",
+    "design-system",
+    "future-state"
+  ]
 }
