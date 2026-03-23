@@ -43,6 +43,9 @@ If the spec is vague, the implementation will drift.
 
 ### Required implementation touchpoints
 
+- `crates/agent-runtime/src/flow_telemetry.rs`
+- `crates/resq-mail/src/telemetry/schema.rs`
+- `crates/resq-mail/src/telemetry/tracing_emit.rs`
 - define queue and function constants
 - enqueue work through the right queue client paths
 - register the handlers in the runner
@@ -52,39 +55,54 @@ If the spec is vague, the implementation will drift.
 ### Current mail reference files
 
 ```text
+crates/agent-runtime/src/flow_telemetry.rs
+crates/resq-mail/src/telemetry/schema.rs
+crates/resq-mail/src/telemetry/tracing_emit.rs
 crates/resq-mail/src/queue/jobs.rs
 crates/resq-mail/src/queue/mod.rs
 crates/resq-mail/src/bin/resq-mail-runner.rs
-crates/resq-mail/src/util/mail_e2e_event.rs
 crates/resq-mail/src/worker/*.rs
 README.md
 ```
 
 ### What each file is doing in the mail flow
 
+- `crates/agent-runtime/src/flow_telemetry.rs`
+  defines the shared `flow_event` constant and the shared identity and envelope helpers
+- `crates/resq-mail/src/telemetry/schema.rs`
+  declares `flow_id`, the shared event name, and the mail component and stage catalogs
+- `crates/resq-mail/src/telemetry/tracing_emit.rs`
+  emits structured flow logs with the shared flow fields
 - `crates/resq-mail/src/queue/jobs.rs`
   declares queue names and function names such as `rrq:queue:mail-incoming` and `handle_mail_incoming_check`
 - `crates/resq-mail/src/queue/mod.rs`
   is the enqueue boundary that records queue handoff telemetry
 - `crates/resq-mail/src/bin/resq-mail-runner.rs`
   registers the functions that actually execute for the flow
-- `crates/resq-mail/src/util/mail_e2e_event.rs`
-  is the current mail-specific helper for meaningful flow events like enqueue, worker pickup, worker result, and stage events
 - `crates/resq-mail/src/worker/*.rs`
   holds the business logic that should emit the stage and detail events declared in the flow spec
 
 ### What the flow telemetry needs to give resq-flow
 
-At minimum, the telemetry must provide stable signals that the shared flow contract can match:
+At minimum, the telemetry must provide the shared flow identity fields:
 
-- log event name
-- queue names
-- function names
-- worker names
-- stage IDs
-- stable span names when relevant
+- logs with `event = flow_event`
+- `flow_id`
+- `run_id`
+- `component_id`
+- `component_kind`
+- `stage_id` when applicable
 
-Prefer explicit `flow_id` too when the producer path supports it, but do not rely on that alone. The contract should still be able to match the flow through stable boundary and stage naming.
+Keep stable queue, function, worker, and span names too.
+They still matter for context retention, span mapping, and rollout compatibility.
+
+The standard is:
+
+- `flow_id` is how we know which flow it is
+- `component_id` is the first-class node identity
+- `stage_id` is subordinate child-step detail
+
+Traces do not need `event = flow_event`, but they should carry shared identity like `flow_id` and `component_id`.
 
 ## What gets added on the resq-flow side
 
@@ -125,7 +143,7 @@ ui/src/core/hooks/__tests__/useTraceJourney.test.ts
 ### What each file is doing in the mail flow
 
 - `ui/src/flow-contracts/mail-pipeline.json`
-  declares the stable flow ID, the flow name, telemetry match rules, and context retention policy
+  declares the stable flow ID, the shared log event, the telemetry match rules, and the context retention policy
 - `ui/src/flows/mail-pipeline.ts`
   declares graph nodes, edges, and `spanMapping`
 - `ui/src/flows/index.ts`
@@ -135,6 +153,16 @@ ui/src/core/hooks/__tests__/useTraceJourney.test.ts
 - `relay/tests/*.rs`
   verifies that the relay keeps, matches, and publishes the right events
 - `ui` tests verify mapping, animation, and trace-journey behavior against the flow
+
+`resq-flow` should use `flow_id` to decide which contract applies.
+
+Per-flow meaning belongs in:
+
+- `ui/src/flow-contracts/<flow-id>.json`
+- `ui/src/flows/<flow-id>.ts`
+- relay and UI mapping code
+
+It does not belong in `Vector`.
 
 ## Minimal checklist for a new flow
 
@@ -156,6 +184,7 @@ Add or update:
 - function names
 - worker names
 - handler registration
+- shared flow identity fields
 - stage and outcome telemetry
 
 The graph should not invent boundaries that the runtime does not actually own.
@@ -166,11 +195,17 @@ Create `ui/src/flow-contracts/<flow-id>.json` with:
 
 - `id`
 - `name`
-- `telemetry.log_events`
-- queue, function, worker, stage, and span prefixes
+- `telemetry.log_events` set to `["flow_event"]`
+- queue, function, worker, stage, and span prefixes as needed
 - `keep_context`
 
 This is the shared boundary used by both the relay and the UI.
+
+The standard path is:
+
+- logs share one event name
+- `flow_id` identifies the flow
+- the `resq-flow` contract applies the per-flow meaning
 
 ### 4. Decide whether the flow is headless first or graph first
 
@@ -201,6 +236,25 @@ Add:
 Before calling the flow done, make sure:
 
 - the flow contract matches real emitted telemetry
+- structured flow logs use `event = flow_event`
+- `flow_id` correctly identifies the flow
 - queue and worker boundaries still read truthfully
+- `component_id` stays the first-class node identity
+- `stage_id` stays subordinate child-step detail
 - the graph stays sparse while drill-down stays rich
 - the logs and canvas agree on what counts as default signal
+- Victoria still receives the full telemetry stream
+- `resq-flow` only receives the filtered flow-shaped subset
+
+## What future flows should not need
+
+After the shared flow routing is in place, a new flow should not need:
+
+- a unique event name
+- a flow-specific Vector regex block
+- a new Vector env var
+- custom per-flow routing logic in `Vector`
+
+`Vector` should stay coarse and generic.
+
+`resq-flow` should use `flow_id` and the flow contract to apply the flow-specific meaning.

@@ -2,5 +2,10 @@
   "title": "Overview",
   "description": "What resq-flow is, the telemetry problem it solves, and how it fits into the shared observability stack.",
   "root": true,
-  "pages": ["index", "telemetry-basics", "architecture"]
+  "pages": [
+    "index",
+    "telemetry-basics",
+    "shared-flow-event-contract",
+    "architecture"
+  ]
 }

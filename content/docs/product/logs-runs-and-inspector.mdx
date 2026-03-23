@@ -9,16 +9,32 @@ Users will naturally move between the visual flow, raw logs, and run-specific de
 
 ## Logs
 
-Logs remain the raw detail view.
+Logs should be summary-first when possible.
 
-They are still where you go for:
+The default row should answer "what happened?" before the user has to open raw telemetry.
+
+For the current mail rollout, useful summaries include:
+
+- `drafted; awaiting manual review`
+- `drafted; awaiting manual approval`
+- `auto-send approved; execution enqueued`
+- `send queued`
+- `sent`
+- `retryable send failure`
+- `terminal send failure`
+
+Raw detail still matters.
+
+Logs are still where you go for:
 
 - exact messages
 - structured attributes
 - error context
 - low-level debugging
 
-But the goal is that logs do not have to carry the whole product experience alone.
+But raw detail should not be the only readable layer.
+
+The product should keep the source message, attributes, and tracing context available in drill-down.
 
 ## Runs and journeys
 
@@ -44,6 +60,9 @@ For a process or node, it should prioritize:
 
 Timing is important, but it should not dominate the inspector before the meaning of the node is clear.
 
+The first layer should explain the outcome.
+The deeper layer can expose the raw telemetry.
+
 ## Live and history
 
 These are two intentional paths, not one overloaded screen:
@@ -59,7 +78,7 @@ The product should use the same flow semantics for both.
 
 Canvas detail and default logs should share the same signal rules:
 
-- meaningful by default
+- summary-first and meaningful by default
 - selected operational by default
 - raw behind advanced or show-all
 

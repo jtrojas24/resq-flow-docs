@@ -36,9 +36,9 @@ In our world, the main telemetry types are:
 
 For us, the important idea is simple:
 
-- `resq-agent` emits OTLP
-- `Vector` receives it
-- the stack routes it to the places that need it
+- `resq-agent` emits once
+- `Vector` receives it once
+- `Vector` fans it out to the places that need it
 
 ## The stack pieces in plain English
 
@@ -46,11 +46,23 @@ For us, the important idea is simple:
 
 `resq-agent` is a producer. It emits the traces and logs that describe real queue, worker, and process activity.
 
+For structured flow logs, the shared event name is `flow_event`.
+
+The flow itself is identified by `flow_id`, such as `mail-pipeline`.
+
+Traces do not need `event=flow_event`, but they should still carry the same shared identity fields where they apply, especially `flow_id` and `component_id`.
+
 ### Vector
 
 `Vector` is the collector and router.
 
 It receives telemetry once and fans it out to multiple downstream systems.
+
+For `resq-flow`, that fanout model is:
+
+- all logs and traces still go to Victoria
+- only the filtered flow-shaped subset goes to `resq-flow`
+- this is fanout, not replacement
 
 ### Victoria
 
@@ -62,7 +74,9 @@ If you want long-lived storage and flexible querying, this is the primary source
 
 The Rust relay is the flow-aware consumer.
 
-It receives traces and logs, normalizes them into a shared `FlowEvent` model, applies exact flow matching, and streams them to the UI.
+It receives the flow-shaped subset of logs and traces, normalizes them into a shared `FlowEvent` model, applies the flow contract, and streams them to the UI.
+
+The relay uses `flow_id` to determine which flow contract applies.
 
 ### resq-flow UI
 

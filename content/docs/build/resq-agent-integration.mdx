@@ -10,9 +10,10 @@ The current primary consumer of `resq-flow` is `resq-agent`.
 The important contract is:
 
 - `resq-agent` emits OTLP once
-- `Vector` fans out to Victoria and `resq-flow`
-- `Victoria` remains the storage and query source of truth
-- `resq-flow` consumes the live stream and renders a flow-oriented view on top
+- `Vector` fans out that telemetry
+- Victoria still receives the full logs and traces
+- `resq-flow` only receives the filtered flow-shaped subset
+- Victoria remains the storage and query source of truth
 
 ## What resq-agent owns
 
@@ -23,10 +24,26 @@ That means it owns:
 - queue boundaries
 - worker boundaries
 - function naming
-- stage and detail telemetry
+- shared flow identifiers such as `flow_id`, `run_id`, `component_id`, `component_kind`, and `stage_id`
 - meaningful process and decision semantics
 
 If those producer-side semantics are vague, `resq-flow` has to guess, which is exactly what we want to avoid.
+
+For structured flow logs, the shared log contract is:
+
+- `event = flow_event`
+- `flow_id = <flow id>`
+- `run_id = <run id>`
+- `component_id = <first-class node id>`
+- `component_kind = <node type>`
+- `stage_id = <child step>` when applicable
+
+The mail rollout is the current example:
+
+- `event = flow_event`
+- `flow_id = mail-pipeline`
+
+Traces do not need `event = flow_event`, but they should still carry shared identity like `flow_id` and `component_id`.
 
 ## What resq-flow owns
 
@@ -42,13 +59,41 @@ There is not a second graph JSON file.
 
 Today the required JSON file on the `resq-flow` side is the shared flow contract, while the rich graph configuration still lives in TypeScript.
 
+`resq-flow` uses `flow_id` to determine which flow contract applies.
+
+Per-flow meaning belongs in:
+
+- `resq-flow` contracts
+- `resq-flow` node mappings
+- `resq-flow` presentation logic
+
+It does not belong in `Vector`.
+
+## What Vector owns
+
+`Vector` should stay generic.
+
+Its job is:
+
+- receive OTLP once
+- keep Victoria as the main sink
+- apply one coarse filter for flow-shaped telemetry
+- forward that subset to `resq-flow`
+
+Future flows should not require:
+
+- new event names
+- new Vector regex blocks
+- new per-flow env vars
+
 ## Shared-stack expectations
 
 The default expectation should be:
 
 - one shared OTLP path
 - one durable storage and query source of truth
-- one flow contract boundary
+- one shared flow log contract
+- one flow contract boundary chosen by `flow_id`
 - optional richer graph presentation layered on later
 
 ## Adding a new resq-agent-backed flow

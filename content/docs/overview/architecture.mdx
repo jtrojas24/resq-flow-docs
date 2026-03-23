@@ -1,130 +1,60 @@
 ---
 title: Architecture
-description: The shared observability topology, ownership boundaries, and the internal Vite UI plus Rust relay architecture.
+description: The shared observability topology and the simple ownership split between resq-agent, Vector, Victoria, and resq-flow.
 ---
 
-## One true topology
+## Shared path
 
 `resq-flow` is a consumer of the shared local observability stack, not a parallel pipeline.
 
 ```text
-producer(s) -> Vector -> VictoriaLogs
-                     -> VictoriaTraces
-                     -> VictoriaMetrics
-                     -> resq-flow relay -> WebSocket -> UI
+resq-agent -> OTLP -> Vector -> VictoriaLogs
+                           -> VictoriaTraces
+                           -> VictoriaMetrics
+                           -> resq-flow relay -> WebSocket -> UI
 ```
 
-The core architectural rule is simple:
+The core rule is simple:
 
-- producers emit OTLP to `Vector`
+- producers emit once
 - `Vector` fans out
-- `Victoria` remains primary storage and query
-- `resq-flow` stays focused on flow-oriented visualization and detail
+- Victoria still gets the full telemetry stream
+- `resq-flow` only gets the filtered flow-shaped subset
 
-## Ownership
+This is fanout, not replacement.
 
-- `fullstack` owns the applied local Vector runtime config
-- producers such as `resq-agent` send telemetry to `Vector`
-- `resq-flow` owns the relay, UI, normalized flow model, tests, and example fanout snippet
+## Responsibility split
+
+- `resq-agent` emits the logs and traces that describe the real runtime boundaries
+- `resq-fullstack` owns the applied local `Vector` config and the Victoria sinks
+- `resq-flow` owns the relay, flow contracts, UI, and flow-aware presentation
 
 That means the normal path is shared-stack first, not direct-to-`resq-flow`.
 
-## Internal resq-flow architecture
+`Vector` only does generic routing. It should not carry the meaning of a specific flow.
 
-`resq-flow` itself has two services:
+## Inside resq-flow
+
+`resq-flow` has two services:
 
 - `relay/`
-  a Rust service that receives OTLP traces and logs, applies flow contracts, and publishes normalized live updates
+  a Rust service that receives the filtered logs and traces, applies the flow contract, and publishes normalized live updates
 - `ui/`
   a Vite + React UI that renders graph-backed and headless flow experiences
 
-This split matters because the relay owns the telemetry contract and the UI owns presentation.
-
-## Responsibilities by layer
-
-### Vector
-
-Vector is the collector and router.
-
-Its job for `resq-flow` is intentionally limited:
-
-- accept OTLP once
-- keep Victoria sinks as the primary path
-- apply coarse, cheap pre-filtering for the `resq-flow` fanout
-- forward traces and logs to `resq-flow`
-- keep the `resq-flow` sink best-effort so relay issues do not endanger Victoria
-
-### Relay
-
-The relay is the contract-aware live consumer.
-
-It:
-
-- receives OTLP traces and logs
-- normalizes them into `FlowEvent`
-- loads flow contracts from `ui/src/flow-contracts`
-- applies exact contract matching plus context retention
-- tags kept events with `matched_flow_ids`
-- stores a recent in-memory buffer for reconnect snapshots
-- publishes WebSocket `snapshot` and `batch` envelopes
-- uses the same contract-driven flow filtering for history fetches
-
-### UI
-
-The UI is the presentation layer.
-
-It:
-
-- consumes relay WebSocket envelopes in append-only batches
-- uses `matched_flow_ids` instead of re-implementing coarse flow matching
-- keeps live mode separate from paced history playback
-- supports both graph-backed flows and headless flows
-
-## The two-layer flow model
-
-Each flow is split into two concerns.
-
-### Shared JSON contract
-
-Location:
-
-- `ui/src/flow-contracts/<flow-id>.json`
-
-This is the shared boundary used by both relay and UI registry. It defines:
-
-- flow identity
-- telemetry matching rules
-- context retention rules
-
-### Optional TypeScript view config
-
-Location:
-
-- `ui/src/flows/<flow-id>.ts`
-
-This is only for rich UI concerns:
-
-- graph nodes and edges
-- span-to-node mapping
-- view-specific presentation
-
-If the TypeScript view config is absent, the flow can still exist as a headless flow.
+This split matters because the relay owns the flow-aware telemetry contract and the UI owns presentation.
 
 ## Live and history
 
-There are two intentional paths:
+There are two intentional product paths:
 
 ### Live
 
-```text
-Vector -> relay ingest -> contract match -> matched_flow_ids -> WS snapshot/batch -> UI
-```
+`Vector -> relay ingest -> flow contract -> UI`
 
 ### History
 
-```text
-UI -> relay history API -> Victoria queries -> normalized events -> contract filter -> UI
-```
+`UI -> relay history API -> Victoria queries -> contract filter -> UI`
 
 The important idea is consistency:
 

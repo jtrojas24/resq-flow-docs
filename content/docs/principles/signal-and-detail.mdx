@@ -52,6 +52,23 @@ Use `detail` when the thing is better shown as:
 - a queue handoff detail
 - a sidebar note
 
+## Identifier semantics should match the model
+
+The telemetry contract should reinforce the same node-vs-detail split that the product uses.
+
+- `component_id` is the canonical identity of the first-class node
+- `component_kind` says what kind of node it is
+- `stage_id` is subordinate child-step detail under that node
+
+Do not treat `stage_id` as a second node ID.
+
+If a combined detail key is useful, derive it as `component_id.stage_id`.
+
+That keeps the graph sparse and the meaning stable:
+
+- the node stays first-class
+- the child step stays attached detail
+
 ## Signal-first defaults
 
 When a user selects a first-class node, the default experience should answer:
@@ -68,6 +85,20 @@ It should prefer:
 - meaningful events
 - important operational events with real consequence
 - the bigger-picture run context this node was part of
+
+The same rule should guide default logs and inspectors.
+
+They should lead with meaningful outcomes before raw tracing exhaust.
+
+Examples of useful default outcomes:
+
+- drafted; awaiting manual review
+- drafted; awaiting manual approval
+- auto-send approved; execution enqueued
+- send queued
+- sent
+- retryable send failure
+- terminal send failure
 
 ## Severity beats filtering
 
@@ -99,4 +130,4 @@ That does not mean they must render the same layout, but they should agree on wh
 
 - meaningful by default
 - selected operational by default
-- raw behind advanced or show-all
+- raw behind advanced, show-all, or deeper drill-down
