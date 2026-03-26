@@ -1,0 +1,442 @@
+---
+title: Using the CLI
+description: Use the resq-flow CLI for relay checks, log inspection, live log tailing, and ad hoc scoped or global log emission from a terminal or agent workflow.
+---
+
+The `resq-flow` CLI is the headless interface for the product.
+
+Use it when you want to:
+
+- check whether the relay is reachable without opening the UI
+- inspect recent flow logs from a terminal
+- tail live flow logs while you replay traffic or debug a worker
+- emit a quick structured log for local validation without wiring a full producer change first
+- give an AI agent or script stable JSON or JSONL instead of browser state
+
+## CLI at a glance
+
+The CLI lives in the `cli/` package inside the main `resq-flow` repo.
+
+At a high level, it is:
+
+- built in TypeScript
+- developed and built locally with Bun
+- emitted as a Node-compatible executable
+- connected to the same relay surfaces that power the product UI
+
+That means the CLI is not a separate control plane or a second flow model.
+It is a thin headless client over the existing `resq-flow` relay.
+
+## How it fits into the stack
+
+The CLI sits on top of the same local stack as the UI:
+
+```text
+producer -> Vector -> Victoria + resq-flow relay -> CLI / UI
+```
+
+For the MVP, the CLI talks to relay surfaces that already exist:
+
+- `GET /health`
+- `GET /health/ingest`
+- `GET /capabilities`
+- `GET /v1/history`
+- `GET /ws`
+
+The runtime code stays Node-compatible, and the live streaming path uses the `ws` package for WebSocket support outside the browser.
+
+## Why resq-flow has a CLI
+
+The UI is great for topology, inspectors, and visual flow understanding.
+The CLI exists because some workflows are faster and safer in a terminal:
+
+- terminal-first debugging over SSH, tmux, or local shells
+- quick relay checks before you open the browser
+- reproducible, machine-friendly output for scripts, CI, and agents
+- headless flow support for flows that are still useful before they have a polished graph
+
+For AI agents in particular, the CLI gives a narrow and deterministic surface:
+
+- `status` answers whether the relay is up and whether ingest is active
+- `logs list` gives bounded recent history for one flow or all scopes
+- `logs tail` gives a live stream that agents can filter and consume incrementally
+- `logs emit` lets an agent or developer write one explicit log event into the live relay path
+- `--json` and `--jsonl` avoid scraping browser output
+
+## Before you start
+
+This guide assumes that you already completed [Local setup](/docs/build/local-setup) and have the `resq-flow` repo checked out locally.
+
+The canonical executable name is `resq-flow`.
+
+## Install the command locally
+
+1. From the `resq-flow` repo root, build the CLI:
+
+   ```bash
+   make build-cli
+   ```
+
+2. Link it into your shell once so the `resq-flow` command is available locally:
+
+   ```bash
+   cd cli
+   npm link
+   ```
+
+3. Confirm that the command responds:
+
+   ```bash
+   resq-flow --help
+   ```
+
+4. If you want to run the full CLI test suite, including integration tests:
+
+   ```bash
+   make test-cli
+   ```
+
+If you do not want to link the package into your shell, you can still use the built fallback entrypoint directly:
+
+```bash
+node cli/dist/index.js --help
+```
+
+## Start the relay
+
+For CLI-only work, start just the relay:
+
+```bash
+make dev-relay
+```
+
+If you also want the browser experience running alongside the CLI, start the full app:
+
+```bash
+make dev
+```
+
+The default relay base URL is `http://localhost:4200`.
+
+## Choose the right command
+
+Use these commands for different kinds of questions:
+
+- `resq-flow status`
+  for relay reachability and ingest health
+- `resq-flow logs list --flow <flow-id>`
+  for recent history for one flow
+- `resq-flow logs list --all`
+  for recent history across both flow-scoped and global logs
+- `resq-flow logs tail --flow <flow-id>`
+  for live events for one flow
+- `resq-flow logs tail --all`
+  for live events across all scopes
+- `resq-flow logs emit --flow <flow-id> ...`
+  for a live ad hoc log that belongs to a flow
+- `resq-flow logs emit --global ...`
+  for a live ad hoc log that stays unscoped
+
+The important distinction is:
+
+- `logs tail` uses the live relay WebSocket stream
+- `logs list` uses the history query path
+- `logs emit` writes a `type: "log"` event into the live relay WebSocket path
+
+That means replay or live traffic can update the UI in live mode and update `logs tail` immediately, while `logs list` only shows data that is available through the history backend.
+
+For the local fixture path, see [Replay fixture traffic](/docs/build/local-setup#replay-fixture-traffic).
+
+## Scope model
+
+The CLI uses explicit scope.
+
+- a log belongs to a flow only if it explicitly declares that flow
+- valid flow ownership signals are `attributes.flow_id` or relay-assigned `matched_flow_ids`
+- if neither exists, the log is global
+- global logs do not appear in a specific flow UI
+
+The base command shapes are:
+
+```bash
+resq-flow status
+resq-flow logs list --flow <flow-id>
+resq-flow logs list --all
+resq-flow logs tail --flow <flow-id>
+resq-flow logs tail --all
+resq-flow logs emit --flow <flow-id> --message "<text>"
+resq-flow logs emit --global --message "<text>"
+```
+
+Flag rules:
+
+- `logs list` and `logs tail` require exactly one of `--flow <flow-id>` or `--all`
+- `logs emit` requires exactly one of `--flow <flow-id>` or `--global`
+
+## Check relay status
+
+Use `status` when you want the fastest answer to "is the relay up, and is it seeing traffic?"
+
+```bash
+resq-flow status
+```
+
+Use JSON output when a script or agent needs stable fields:
+
+```bash
+resq-flow status --json
+```
+
+Supported flags:
+
+- `--url <base-url>`
+- `--json`
+- `--timeout <ms>`
+
+Expected output:
+
+- default output is a short human-readable summary for relay and ingest health
+- `--json` returns stable machine-readable fields for scripts or agents
+
+## List recent logs
+
+Use `logs list` when you want a bounded recent history window.
+
+Start with the default output:
+
+```bash
+resq-flow logs list --flow mail-pipeline
+resq-flow logs list --all
+```
+
+Narrow the window or result size:
+
+```bash
+resq-flow logs list --flow mail-pipeline --window 15m
+resq-flow logs list --flow mail-pipeline --limit 20
+```
+
+Switch to machine-friendly output when you need to pipe or parse results:
+
+```bash
+resq-flow logs list --flow mail-pipeline --json
+resq-flow logs list --flow mail-pipeline --jsonl
+```
+
+Supported flags:
+
+- exactly one of `--flow <flow-id>` or `--all`
+- `--window <duration>` where duration is `<number><unit>` and unit is `s`, `m`, or `h`
+- `--attr <key=value>` repeatable
+- `--query <text>`
+- `--limit <n>`
+- `--json`
+- `--jsonl`
+- `--url <base-url>`
+
+Expected output:
+
+- default output is a human-readable table
+- flow-scoped rows show the flow id, run id, stage, status, and message
+- `--all` can include `global` rows for unscoped logs
+- `--json` returns one array
+- `--jsonl` returns one JSON object per line
+
+## Filter logs with attributes
+
+Attribute filters are exact matches.
+Use one or more `--attr key=value` flags to narrow to a specific run, stage, worker, or status.
+
+Examples:
+
+```bash
+resq-flow logs list --flow mail-pipeline --attr thread_id=thread-201
+resq-flow logs list --flow mail-pipeline --attr run_id=thread-201
+resq-flow logs list --flow mail-pipeline --attr stage_id=send.provider_call
+resq-flow logs list --flow mail-pipeline --attr worker_name=mail_sender
+resq-flow logs list --flow mail-pipeline --attr status=error
+```
+
+You can combine filters:
+
+```bash
+resq-flow logs list --flow mail-pipeline --attr thread_id=thread-201 --attr status=error
+```
+
+The current `mail-pipeline` fixture and relay response shapes make these keys especially useful:
+
+- `thread_id`
+- `stage_id`
+- `run_id`
+- `flow_id`
+- `function_name`
+- `worker_name`
+- `status`
+- `component_id`
+
+## Filter logs with text search
+
+Use `--query` when you want substring matching across messages and other useful fields.
+
+Examples:
+
+```bash
+resq-flow logs list --flow mail-pipeline --query timeout
+resq-flow logs list --flow mail-pipeline --query draft
+resq-flow logs list --flow mail-pipeline --query thread-201
+```
+
+`--query` is often useful when you do not know the exact attribute key yet.
+Use `--attr` when you want precise, repeatable filtering.
+
+## Tail live logs
+
+Use `logs tail` when you want to watch matching flow logs arrive in real time.
+
+Start the live stream:
+
+```bash
+resq-flow logs tail --flow mail-pipeline
+resq-flow logs tail --all
+```
+
+Then in another terminal, replay or trigger matching traffic.
+
+If you want the built-in fixture path, use [Replay fixture traffic](/docs/build/local-setup#replay-fixture-traffic).
+
+Filter a live tail to one run or stage:
+
+```bash
+resq-flow logs tail --flow mail-pipeline --attr thread_id=thread-201
+resq-flow logs tail --flow mail-pipeline --attr stage_id=send.provider_call
+```
+
+Filter by text:
+
+```bash
+resq-flow logs tail --flow mail-pipeline --query timeout
+```
+
+Use JSONL for scripts and AI agents:
+
+```bash
+resq-flow logs tail --flow mail-pipeline --jsonl
+```
+
+Supported flags:
+
+- exactly one of `--flow <flow-id>` or `--all`
+- `--attr <key=value>` repeatable
+- `--query <text>`
+- `--jsonl`
+- `--url <base-url>`
+
+Expected output:
+
+- default output is a streaming human-readable line format
+- flow-scoped tail shows stage, run, status, and message
+- `--all` includes a scope label such as `mail-pipeline` or `global`
+- `--jsonl` is the best option for scripts and agents
+
+## Emit ad hoc logs
+
+Use `logs emit` when you want to inject one quick structured log into the live relay stream.
+
+This is especially useful when:
+
+- you want to validate a stage or run label before making a deeper producer change
+- you want a fast smoke test for `logs tail`
+- you want an AI agent to create a narrow, inspectable debug signal under the existing contract
+
+### Emit a flow-scoped log
+
+Use `--flow <flow-id>` when the log should belong to a specific flow:
+
+```bash
+resq-flow logs emit \
+  --flow mail-pipeline \
+  --message "picked thread for analysis" \
+  --attr run_id=thread-301 \
+  --attr thread_id=thread-301 \
+  --attr stage_id=analyze.decision \
+  --attr status=ok
+```
+
+What happens:
+
+- the CLI prints a short confirmation such as `Emitted flow log to mail-pipeline.`
+- `resq-flow logs tail --flow mail-pipeline` should receive the log immediately
+- the live flow logs UI for `mail-pipeline` should also receive it
+- if you include mappable fields like `stage_id`, `component_id`, `function_name`, or `worker_name`, the existing flow UX can map it cleanly to the flow
+
+### Emit a global log
+
+Use `--global` when the log should stay unscoped:
+
+```bash
+resq-flow logs emit \
+  --global \
+  --message "debug checkpoint before oauth refresh" \
+  --attr subsystem=mail-auth
+```
+
+What happens:
+
+- the CLI prints `Emitted global log.`
+- `resq-flow logs tail --all` should receive it immediately
+- it does not appear in a specific flow UI because it is not flow-scoped
+
+### Supported flags
+
+- exactly one of `--flow <flow-id>` or `--global`
+- `--message <text>` required
+- `--attr <key=value>` repeatable
+- `--url <base-url>`
+
+### Recommended flow-scoped attributes
+
+These are especially useful when you want the log to be easy to query or visually map:
+
+- `run_id`
+- `thread_id`
+- `stage_id`
+- `component_id`
+- `function_name`
+- `worker_name`
+- `status`
+
+### Important note about `logs list`
+
+`logs emit` writes to the live relay path.
+
+That means:
+
+- emitted logs should show up in `logs tail` immediately
+- emitted logs only show up later in `logs list` if your history backend persists and serves them through `/v1/history`
+
+## Recommended workflow
+
+Use the CLI when the problem is narrow and operational:
+
+- `status` before deeper debugging
+- `logs list` for bounded investigation of one flow, one run, or all scopes
+- `logs tail` during replay, worker debugging, or live validation
+- `logs emit` when you want to plant one explicit test signal and immediately verify it
+
+Use the UI when the problem is visual or exploratory:
+
+- understanding flow shape
+- using inspectors and the graph together
+- comparing multiple nodes or runs in context
+
+In practice, the best workflow is often both:
+
+1. use the CLI to confirm relay health or isolate one run
+2. open the UI when you need graph context or deeper drill-down
+
+## Related docs
+
+- [Local setup](/docs/build/local-setup)
+- [Using with resq-agent](/docs/build/resq-agent-integration)
+- [Troubleshooting](/docs/build/troubleshooting)
+- [Logs, runs, and inspector](/docs/product/logs-runs-and-inspector)

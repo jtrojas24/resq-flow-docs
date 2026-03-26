@@ -45,13 +45,63 @@ Helpful commands:
 
 ```bash
 make test
+make build-cli
+make test-cli
 make print-endpoints
 make verify-ingest
 make smoke-vector-fanout
 make smoke-relay-ingest
 make replay
-make replay-direct
 ```
+
+## Replay fixture traffic
+
+Use replay when you want quick local flow activity without waiting on a real producer.
+
+Use `make replay` when you want to validate the real live surfaces:
+
+- the browser in live mode
+- `resq-flow logs tail`
+- flow-scoped or global ad hoc CLI emits alongside fixture traffic
+
+### `make replay`
+
+`make replay` is fixture or demo traffic for local development.
+
+It is useful when you want to:
+
+- validate the live logs view quickly
+- validate canvas activity without wiring a producer
+- test `resq-flow logs tail` against known sample traffic
+
+Before you run it:
+
+1. start the relay and UI with `make dev`
+2. in another terminal, run:
+
+   ```bash
+   make replay
+   ```
+
+What to expect:
+
+- the live UI should update immediately
+- `resq-flow logs tail --flow mail-pipeline` should receive the fixture logs immediately
+- this is live fixture traffic, not durable production traffic
+- `logs list` only shows it later if the history backend persists and serves corresponding events
+
+## Terminal and agent workflows
+
+If you want to inspect `resq-flow` without relying on the browser, use the CLI.
+
+The CLI is useful for:
+
+- quick relay checks
+- bounded recent log inspection
+- live log tailing during [replay fixture traffic](#replay-fixture-traffic) or worker debugging
+- machine-friendly JSON and JSONL output for scripts and AI agents
+
+The full CLI guide lives in [Using the CLI](/docs/build/cli).
 
 ## Direct mode
 
@@ -70,6 +120,8 @@ Standard checks:
 cd relay && cargo fmt
 cd relay && cargo clippy -- -D warnings
 cd relay && cargo test
+cd cli && bun test
+cd cli && bun run build
 cd ui && bun test
 cd ui && bun run build
 ```

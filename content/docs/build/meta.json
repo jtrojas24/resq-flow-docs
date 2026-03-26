@@ -5,6 +5,7 @@
   "pages": [
     "index",
     "local-setup",
+    "cli",
     "resq-agent-integration",
     "adding-a-flow",
     "troubleshooting"

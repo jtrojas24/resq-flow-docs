@@ -16,6 +16,15 @@ make smoke-relay-ingest
 
 These are the fastest sanity checks before deeper debugging.
 
+If you want to stay in the terminal while debugging, the CLI is often the next fastest check:
+
+```bash
+resq-flow status
+resq-flow logs list --flow mail-pipeline
+```
+
+See [Using the CLI](/docs/build/cli) for the fuller workflow.
+
 ## If the app does not start
 
 - make sure Rust `stable` is the default toolchain
@@ -32,7 +41,7 @@ These are the fastest sanity checks before deeper debugging.
 ## If replay is not working
 
 - `make replay` expects both the relay and UI to already be running
-- use `make replay-direct` when you want to bypass the shared relay path and isolate the UI experience
+- see [Replay fixture traffic](/docs/build/local-setup#replay-fixture-traffic) for the intended workflow and expected results
 
 ## If you need to isolate the relay
 
@@ -47,6 +56,8 @@ This is useful when you intentionally want to bypass the shared Vector setup.
 
 ```bash
 make test
+cd cli && bun test
+cd cli && bun run build
 cd relay && cargo test
 cd ui && bun test
 cd ui && bun run build

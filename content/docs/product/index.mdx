@@ -19,6 +19,7 @@ The product is meant to bring together:
 
 - graph-backed flow understanding
 - traditional logs and detail views
+- a headless CLI for terminal-first investigation
 - live execution visibility
 - history and run-level investigation
 - inspectors that explain what a node means, not just that it emitted spans
@@ -29,6 +30,7 @@ Different questions need different views.
 
 - use the graph when you need topology and execution shape
 - use logs when you need raw detail and pattern search
+- use the CLI when you want fast status checks, filtered logs, or machine-readable output
 - use run and journey views when you need one concrete execution story
 - use inspectors when you need meaning, not just raw attributes
 
@@ -42,6 +44,19 @@ Not every flow needs a canvas on day one.
 - headless flows where logs, history, and detail come first
 
 That keeps the product useful even before every flow has a polished graph.
+
+## The headless surface
+
+`resq-flow` is not only a browser product.
+
+The CLI is part of the product surface because some workflows are naturally headless:
+
+- fast terminal debugging
+- SSH and tmux sessions
+- CI and scripted checks
+- AI agents that work better with deterministic JSON or JSONL than with browser state
+
+That headless path should use the same flow model as the UI rather than inventing a second operational surface.
 
 ## The north star
 

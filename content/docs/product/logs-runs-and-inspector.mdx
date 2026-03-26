@@ -36,6 +36,25 @@ But raw detail should not be the only readable layer.
 
 The product should keep the source message, attributes, and tracing context available in drill-down.
 
+## CLI and agent workflows
+
+Logs also need a terminal-first path.
+
+The CLI is the practical headless interface for:
+
+- `status` checks before deeper debugging
+- recent flow log inspection with `logs list`
+- live log streaming with `logs tail`
+- stable JSON or JSONL output for scripts and AI agents
+
+This matters because many debugging loops start in a shell, not in a browser.
+It also lets agents operate on a narrow, explicit surface instead of having to infer state from UI output.
+
+The CLI should complement the UI, not replace it:
+
+- use the CLI for fast operational checks and machine-friendly filtering
+- use the UI when you need graph context, inspectors, and richer comparison across runs or nodes
+
 ## Runs and journeys
 
 A useful flow product should let a user reason about one concrete execution path, not just one node at a time.
