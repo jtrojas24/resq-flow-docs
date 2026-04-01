@@ -63,6 +63,18 @@ The child step under the owning `component_id`.
 
 This is detail about what happened inside or under that node.
 
+## Node logs vs stage logs
+
+Use this simple distinction when designing or reviewing flow logs:
+
+- `component_id` identifies the primary node, so logs anchored there are node logs
+- `stage_id` identifies a step attached to that node, so logs that use it are stage logs
+
+That gives us one clean model:
+
+- node logs define the main flow structure
+- stage logs show what happened around a node's work
+
 ## The key semantic rule
 
 `component_id` is the node identity.
@@ -121,5 +133,5 @@ This says:
 - this is a structured flow log
 - it belongs to the mail pipeline
 - it belongs to one specific run
-- the first-class node is `send-process`
-- the child step is `final_result`
+- the first-class node is `send-process`, so this is a node-scoped flow log
+- the child step is `final_result`, so this is also a stage log attached to that node

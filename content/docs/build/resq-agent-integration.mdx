@@ -38,6 +38,16 @@ For structured flow logs, the shared log contract is:
 - `component_kind = <node type>`
 - `stage_id = <child step>` when applicable
 
+Use this terminology on the producer side too:
+
+- node logs are anchored by the first-class `component_id`
+- stage logs are attached to that node through `stage_id`
+
+That keeps the producer contract simple:
+
+- node identity stays explicit
+- stage detail stays attached instead of turning into a second node system
+
 The mail rollout is the current example:
 
 - `event = flow_event`

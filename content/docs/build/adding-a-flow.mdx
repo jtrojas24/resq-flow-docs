@@ -20,6 +20,12 @@ The preferred workflow is still:
 4. update `resq-agent`
 5. update `resq-flow`
 
+For agent-assisted work, the clean split is:
+
+- `flow-cli-create` to scaffold a brand-new flow
+- `flow-cli-write` to add or change logs on an existing flow
+- `flow-cli-read` to validate the result in `resq-flow`
+
 The canonical source docs to start from are:
 
 - `resq-agent/jrodocs/current/resq-flow/README.md`
@@ -30,7 +36,7 @@ The spec should declare:
 
 - flow name and flow ID
 - first-class node catalog
-- stage and detail IDs
+- stage and detail IDs attached to those nodes
 - resource and artifact drill-down expectations
 - queue, function, worker, and span naming
 - graph grouping and layout intent
@@ -101,6 +107,11 @@ The standard is:
 - `flow_id` is how we know which flow it is
 - `component_id` is the first-class node identity
 - `stage_id` is subordinate child-step detail
+
+In simpler language:
+
+- node logs define the main flow structure
+- stage logs are attached to nodes and show what happened around that node's work
 
 Traces do not need `event = flow_event`, but they should carry shared identity like `flow_id` and `component_id`.
 
@@ -185,9 +196,15 @@ Add or update:
 - worker names
 - handler registration
 - shared flow identity fields
-- stage and outcome telemetry
+- node logs for the main flow backbone
+- stage logs where attached node detail is worth surfacing
 
 The graph should not invent boundaries that the runtime does not actually own.
+
+As a default:
+
+- start with the core node logs every new flow needs
+- add stage logs after that where they help explain a node's work
 
 ### 3. Add the shared contract in resq-flow
 

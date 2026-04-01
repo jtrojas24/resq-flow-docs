@@ -1,6 +1,6 @@
 ---
 title: Using the CLI
-description: Use the resq-flow CLI for relay checks, log inspection, live log tailing, and ad hoc scoped or global log emission from a terminal or agent workflow.
+description: Use the resq-flow CLI for relay checks, log inspection, live log tailing, and scoped or global manual debug log emission from a terminal or agent workflow.
 ---
 
 The `resq-flow` CLI is the headless interface for the product.
@@ -10,7 +10,7 @@ Use it when you want to:
 - check whether the relay is reachable without opening the UI
 - inspect recent flow logs from a terminal
 - tail live flow logs while you replay traffic or debug a worker
-- emit a quick structured log for local validation without wiring a full producer change first
+- emit a quick structured debug log for local validation without wiring a full producer change first
 - give an AI agent or script stable JSON or JSONL instead of browser state
 
 ## CLI at a glance
@@ -62,6 +62,20 @@ For AI agents in particular, the CLI gives a narrow and deterministic surface:
 - `logs tail` gives a live stream that agents can filter and consume incrementally
 - `logs emit` lets an agent or developer write one explicit log event into the live relay path
 - `--json` and `--jsonl` avoid scraping browser output
+
+## Skills and agent workflows
+
+If you are using Codex or another agent, the current skill split should be:
+
+- `flow-cli-read`
+  inspect flow logs with `status`, `logs list`, and `logs tail`
+- `flow-cli-write`
+  add or change logs for an existing flow, then validate them here
+- `flow-cli-create`
+  scaffold a brand-new flow before you start iterating on its logs
+
+The CLI is the validation and manual-debug surface.
+Runtime producer changes should still go through normal application telemetry, not through CLI calls from app code.
 
 ## Before you start
 
@@ -133,17 +147,19 @@ Use these commands for different kinds of questions:
 - `resq-flow logs tail --all`
   for live events across all scopes
 - `resq-flow logs emit --flow <flow-id> ...`
-  for a live ad hoc log that belongs to a flow
+  for a live manual debug log that belongs to a flow
 - `resq-flow logs emit --global ...`
-  for a live ad hoc log that stays unscoped
+  for a live manual debug log that stays unscoped
 
 The important distinction is:
 
 - `logs tail` uses the live relay WebSocket stream
 - `logs list` uses the history query path
-- `logs emit` writes a `type: "log"` event into the live relay WebSocket path
+- `logs emit` writes a `type: "log"` event into the live relay WebSocket path for manual debugging
 
 That means replay or live traffic can update the UI in live mode and update `logs tail` immediately, while `logs list` only shows data that is available through the history backend.
+
+Use `logs emit` for manual debugging, not as the normal producer-side logging path.
 
 For the local fixture path, see [Replay fixture traffic](/docs/build/local-setup#replay-fixture-traffic).
 
