@@ -191,6 +191,12 @@ You should have a real doc that names:
 
 Add or update:
 
+- the standard producer-side telemetry scaffold:
+  - `definition.rs`
+  - `node_context.rs`
+  - `schema.rs`
+  - `tracing_emit.rs`
+  - optional `touchpoints.rs`
 - queue names
 - function names
 - worker names
@@ -205,6 +211,14 @@ As a default:
 
 - start with the core node logs every new flow needs
 - add stage logs after that where they help explain a node's work
+
+That base scaffold should stay small and boring:
+
+- `definition.rs` answers what the flow is and how code binds to a node
+- `node_context.rs` answers what can be emitted once code is attached to a node
+- `schema.rs` answers what the stable structured names and payloads are
+- `tracing_emit.rs` answers how those records physically hit tracing
+- `touchpoints.rs` is only needed when the flow has reusable durable-write or cursor-touchpoint helpers
 
 ### 3. Add the shared contract in resq-flow
 

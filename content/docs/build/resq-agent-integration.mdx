@@ -15,6 +15,16 @@ The important contract is:
 - `resq-flow` only receives the filtered flow-shaped subset
 - Victoria remains the storage and query source of truth
 
+On the producer side, the standard telemetry shape for a flow should be:
+
+- `definition.rs`
+- `node_context.rs`
+- `schema.rs`
+- `tracing_emit.rs`
+- optional `touchpoints.rs`
+
+That is the file layout `resq-flow` skills and docs should teach by default.
+
 ## What resq-agent owns
 
 `resq-agent` owns the runtime truth.
