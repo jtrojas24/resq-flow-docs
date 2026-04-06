@@ -268,7 +268,7 @@ Examples:
 ```bash
 resq-flow logs list --flow mail-pipeline --attr thread_id=thread-201
 resq-flow logs list --flow mail-pipeline --attr run_id=thread-201
-resq-flow logs list --flow mail-pipeline --attr stage_id=send.provider_call
+resq-flow logs list --flow mail-pipeline --attr step_id=send.provider_call
 resq-flow logs list --flow mail-pipeline --attr worker_name=mail_sender
 resq-flow logs list --flow mail-pipeline --attr status=error
 ```
@@ -282,7 +282,7 @@ resq-flow logs list --flow mail-pipeline --attr thread_id=thread-201 --attr stat
 The current `mail-pipeline` fixture and relay response shapes make these keys especially useful:
 
 - `thread_id`
-- `stage_id`
+- `step_id`
 - `run_id`
 - `flow_id`
 - `function_name`
@@ -324,7 +324,7 @@ Filter a live tail to one run or stage:
 
 ```bash
 resq-flow logs tail --flow mail-pipeline --attr thread_id=thread-201
-resq-flow logs tail --flow mail-pipeline --attr stage_id=send.provider_call
+resq-flow logs tail --flow mail-pipeline --attr step_id=send.provider_call
 ```
 
 Filter by text:
@@ -374,7 +374,7 @@ resq-flow logs emit \
   --message "picked thread for analysis" \
   --attr run_id=thread-301 \
   --attr thread_id=thread-301 \
-  --attr stage_id=analyze.decision \
+  --attr step_id=analyze.decision \
   --attr status=ok
 ```
 
@@ -383,7 +383,7 @@ What happens:
 - the CLI prints a short confirmation such as `Emitted flow log to mail-pipeline.`
 - `resq-flow logs tail --flow mail-pipeline` should receive the log immediately
 - the live flow logs UI for `mail-pipeline` should also receive it
-- if you include mappable fields like `stage_id`, `component_id`, `function_name`, or `worker_name`, the existing flow UX can map it cleanly to the flow
+- if you include mappable fields like `step_id`, `component_id`, `function_name`, or `worker_name`, the existing flow UX can map it cleanly to the flow
 
 ### Emit a global log
 
@@ -415,7 +415,7 @@ These are especially useful when you want the log to be easy to query or visuall
 
 - `run_id`
 - `thread_id`
-- `stage_id`
+- `step_id`
 - `component_id`
 - `function_name`
 - `worker_name`

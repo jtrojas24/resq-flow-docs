@@ -34,7 +34,7 @@ That means it owns:
 - queue boundaries
 - worker boundaries
 - function naming
-- shared flow identifiers such as `flow_id`, `run_id`, `component_id`, `component_kind`, and `stage_id`
+- shared flow identifiers such as `flow_id`, `run_id`, `component_id`, `component_kind`, and `step_id`
 - meaningful process and decision semantics
 
 If those producer-side semantics are vague, `resq-flow` has to guess, which is exactly what we want to avoid.
@@ -46,12 +46,12 @@ For structured flow logs, the shared log contract is:
 - `run_id = <run id>`
 - `component_id = <first-class node id>`
 - `component_kind = <node type>`
-- `stage_id = <child step>` when applicable
+- `step_id = <child step>` when applicable
 
 Use this terminology on the producer side too:
 
 - node logs are anchored by the first-class `component_id`
-- stage logs are attached to that node through `stage_id`
+- step logs are attached to that node through `step_id`
 
 That keeps the producer contract simple:
 

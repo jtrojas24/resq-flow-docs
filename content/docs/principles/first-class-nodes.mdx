@@ -56,7 +56,7 @@ This telemetry is still valuable for search, debugging, logs, traces, and future
 ## Hard rules
 
 - canonical producer binding decides first-class presence
-- telemetry attached as stage, detail, or artifact information is not first-class
+- telemetry attached as step, detail, or artifact information is not first-class
 - first-class node presence should come from canonical spans, not logs alone
 - detail telemetry may animate edges, groups, and panels without becoming nodes
 - real queue and worker boundaries should remain first-class by default
@@ -96,6 +96,6 @@ Each entry should be:
 Naming guidance:
 
 - first-class node IDs: short, semantic, kebab-case
-- stage and detail IDs: dotted action names
+- step and detail IDs: dotted action names
 - resource anchors: simple lowercase IDs like `postgres` and `s3`
 - display labels: human-readable, not forced to match canonical IDs

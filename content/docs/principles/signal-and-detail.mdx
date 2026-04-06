@@ -58,11 +58,11 @@ The telemetry contract should reinforce the same node-vs-detail split that the p
 
 - `component_id` is the canonical identity of the first-class node
 - `component_kind` says what kind of node it is
-- `stage_id` is subordinate child-step detail under that node
+- `step_id` is subordinate child-step detail under that node
 
-Do not treat `stage_id` as a second node ID.
+Do not treat `step_id` as a second node ID.
 
-If a combined detail key is useful, derive it as `component_id.stage_id`.
+If a combined detail key is useful, derive it as `component_id.step_id`.
 
 That keeps the graph sparse and the meaning stable:
 

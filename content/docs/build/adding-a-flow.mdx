@@ -36,7 +36,7 @@ The spec should declare:
 
 - flow name and flow ID
 - first-class node catalog
-- stage and detail IDs attached to those nodes
+- step and detail IDs attached to those nodes
 - resource and artifact drill-down expectations
 - queue, function, worker, and span naming
 - graph grouping and layout intent
@@ -49,6 +49,8 @@ If the spec is vague, the implementation will drift.
 
 ### Required implementation touchpoints
 
+- `crates/resq-mail/src/telemetry/definition.rs`
+- `crates/resq-mail/src/telemetry/node_context.rs`
 - `crates/agent-runtime/src/flow_telemetry.rs`
 - `crates/resq-mail/src/telemetry/schema.rs`
 - `crates/resq-mail/src/telemetry/tracing_emit.rs`
@@ -62,8 +64,11 @@ If the spec is vague, the implementation will drift.
 
 ```text
 crates/agent-runtime/src/flow_telemetry.rs
+crates/resq-mail/src/telemetry/definition.rs
+crates/resq-mail/src/telemetry/node_context.rs
 crates/resq-mail/src/telemetry/schema.rs
 crates/resq-mail/src/telemetry/tracing_emit.rs
+crates/resq-mail/src/telemetry/touchpoints.rs
 crates/resq-mail/src/queue/jobs.rs
 crates/resq-mail/src/queue/mod.rs
 crates/resq-mail/src/bin/resq-mail-runner.rs
@@ -75,10 +80,16 @@ README.md
 
 - `crates/agent-runtime/src/flow_telemetry.rs`
   defines the shared `flow_event` constant and the shared identity and envelope helpers
+- `crates/resq-mail/src/telemetry/definition.rs`
+  declares the mail flow and pipeline IDs, node catalog, resolver helpers, and run-binding entrypoints
+- `crates/resq-mail/src/telemetry/node_context.rs`
+  defines what a bound mail node can emit, including typed node logs and helper-based step logs
 - `crates/resq-mail/src/telemetry/schema.rs`
-  declares `flow_id`, the shared event name, and the mail component and stage catalogs
+  declares the shared event name, the mail action and step vocabulary, and the structured detail shapes
 - `crates/resq-mail/src/telemetry/tracing_emit.rs`
   emits structured flow logs with the shared flow fields
+- `crates/resq-mail/src/telemetry/touchpoints.rs`
+  holds optional durable-write and cursor-touchpoint helpers for mail-specific side effects
 - `crates/resq-mail/src/queue/jobs.rs`
   declares queue names and function names such as `rrq:queue:mail-incoming` and `handle_mail_incoming_check`
 - `crates/resq-mail/src/queue/mod.rs`
@@ -86,7 +97,7 @@ README.md
 - `crates/resq-mail/src/bin/resq-mail-runner.rs`
   registers the functions that actually execute for the flow
 - `crates/resq-mail/src/worker/*.rs`
-  holds the business logic that should emit the stage and detail events declared in the flow spec
+  holds the business logic that should emit the step and detail events declared in the flow spec
 
 ### What the flow telemetry needs to give resq-flow
 
@@ -97,7 +108,7 @@ At minimum, the telemetry must provide the shared flow identity fields:
 - `run_id`
 - `component_id`
 - `component_kind`
-- `stage_id` when applicable
+- `step_id` when applicable
 
 Keep stable queue, function, worker, and span names too.
 They still matter for context retention, span mapping, and rollout compatibility.
@@ -106,12 +117,12 @@ The standard is:
 
 - `flow_id` is how we know which flow it is
 - `component_id` is the first-class node identity
-- `stage_id` is subordinate child-step detail
+- `step_id` is subordinate child-step detail
 
 In simpler language:
 
 - node logs define the main flow structure
-- stage logs are attached to nodes and show what happened around that node's work
+- step logs are attached to nodes and show what happened around that node's work
 
 Traces do not need `event = flow_event`, but they should carry shared identity like `flow_id` and `component_id`.
 
@@ -183,7 +194,7 @@ You should have a real doc that names:
 
 - the flow ID
 - the first-class nodes
-- the stage and detail IDs
+- the step and detail IDs
 - which resources stay drill-down only
 - which things are real process or decision nodes versus subordinate detail
 
@@ -203,14 +214,14 @@ Add or update:
 - handler registration
 - shared flow identity fields
 - node logs for the main flow backbone
-- stage logs where attached node detail is worth surfacing
+- step logs where attached node detail is worth surfacing
 
 The graph should not invent boundaries that the runtime does not actually own.
 
 As a default:
 
 - start with the core node logs every new flow needs
-- add stage logs after that where they help explain a node's work
+- add step logs after that where they help explain a node's work
 
 That base scaffold should stay small and boring:
 
@@ -271,7 +282,7 @@ Before calling the flow done, make sure:
 - `flow_id` correctly identifies the flow
 - queue and worker boundaries still read truthfully
 - `component_id` stays the first-class node identity
-- `stage_id` stays subordinate child-step detail
+- `step_id` stays subordinate child-step detail
 - the graph stays sparse while drill-down stays rich
 - the logs and canvas agree on what counts as default signal
 - Victoria still receives the full telemetry stream
