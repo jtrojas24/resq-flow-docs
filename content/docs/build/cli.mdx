@@ -253,7 +253,7 @@ Supported flags:
 Expected output:
 
 - default output is a human-readable table
-- flow-scoped rows show the flow id, run id, stage, status, and message
+- flow-scoped rows show the flow id, run id, step, status, and message
 - `--all` can include `global` rows for unscoped logs
 - `--json` returns one array
 - `--jsonl` returns one JSON object per line
@@ -261,14 +261,14 @@ Expected output:
 ## Filter logs with attributes
 
 Attribute filters are exact matches.
-Use one or more `--attr key=value` flags to narrow to a specific run, stage, worker, or status.
+Use one or more `--attr key=value` flags to narrow to a specific run, step, worker, or status.
 
 Examples:
 
 ```bash
 resq-flow logs list --flow mail-pipeline --attr thread_id=thread-201
 resq-flow logs list --flow mail-pipeline --attr run_id=thread-201
-resq-flow logs list --flow mail-pipeline --attr step_id=send.provider_call
+resq-flow logs list --flow mail-pipeline --attr component_id=send-process --attr step_id=provider-call
 resq-flow logs list --flow mail-pipeline --attr worker_name=mail_sender
 resq-flow logs list --flow mail-pipeline --attr status=error
 ```
@@ -320,11 +320,11 @@ Then in another terminal, replay or trigger matching traffic.
 
 If you want the built-in fixture path, use [Replay fixture traffic](/docs/build/local-setup#replay-fixture-traffic).
 
-Filter a live tail to one run or stage:
+Filter a live tail to one run or step:
 
 ```bash
 resq-flow logs tail --flow mail-pipeline --attr thread_id=thread-201
-resq-flow logs tail --flow mail-pipeline --attr step_id=send.provider_call
+resq-flow logs tail --flow mail-pipeline --attr component_id=send-process --attr step_id=provider-call
 ```
 
 Filter by text:
@@ -350,7 +350,7 @@ Supported flags:
 Expected output:
 
 - default output is a streaming human-readable line format
-- flow-scoped tail shows stage, run, status, and message
+- flow-scoped tail shows step, run, status, and message
 - `--all` includes a scope label such as `mail-pipeline` or `global`
 - `--jsonl` is the best option for scripts and agents
 
@@ -360,7 +360,7 @@ Use `logs emit` when you want to inject one quick structured log into the live r
 
 This is especially useful when:
 
-- you want to validate a stage or run label before making a deeper producer change
+- you want to validate a step or run label before making a deeper producer change
 - you want a fast smoke test for `logs tail`
 - you want an AI agent to create a narrow, inspectable debug signal under the existing contract
 
@@ -374,7 +374,8 @@ resq-flow logs emit \
   --message "picked thread for analysis" \
   --attr run_id=thread-301 \
   --attr thread_id=thread-301 \
-  --attr step_id=analyze.decision \
+  --attr component_id=analyze-decision \
+  --attr step_id=final-result \
   --attr status=ok
 ```
 
@@ -383,7 +384,7 @@ What happens:
 - the CLI prints a short confirmation such as `Emitted flow log to mail-pipeline.`
 - `resq-flow logs tail --flow mail-pipeline` should receive the log immediately
 - the live flow logs UI for `mail-pipeline` should also receive it
-- if you include mappable fields like `step_id`, `component_id`, `function_name`, or `worker_name`, the existing flow UX can map it cleanly to the flow
+- if you include mappable fields like `component_id`, `step_id`, `function_name`, or `worker_name`, the existing flow UX can map it cleanly to the flow
 
 ### Emit a global log
 
