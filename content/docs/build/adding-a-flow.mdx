@@ -1,134 +1,100 @@
 ---
 title: Adding a flow
-description: How to add a new flow across resq-agent and resq-flow, with the mail pipeline as the concrete reference.
+description: How to add a new flow across resq-agent and resq-flow without inventing a second telemetry model.
 ---
 
-When someone adds a new flow, the job is split across two repos:
+When someone adds a new flow, the work is split across two repos:
 
 - `resq-agent` owns the runtime truth, queue and worker boundaries, and emitted telemetry
-- `resq-flow` owns contract matching, graph presentation, replay fixtures, and flow-specific tests
+- `resq-flow` owns contract matching, replay fixtures, graph presentation, and flow-specific tests
 
 The mail pipeline is the current best reference implementation.
 
+## Start with the skill
+
+If you are doing this with an agent, start with:
+
+- `flow-cli-create`
+
+That is the front door for brand-new flow scaffolding.
+
+The repo-local docs an agent or developer should read first are:
+
+- `AGENTS.md`
+- `README.md`
+- `ARCHITECTURE.md`
+- `docs/flow-event-contract.md`
+- `docs/cli.md`
+- `skills/README.md`
+
+Use `flow-cli-write` later for incremental logging changes inside an existing flow, and `flow-cli-read` to validate the result in `resq-flow`.
+
 ## Start with the spec, not the graph
 
-The preferred workflow is still:
+The preferred workflow is:
 
 1. validate the real code path
-2. classify first-class nodes, visible detail, and hidden detail
-3. write the flow spec
-4. update `resq-agent`
-5. update `resq-flow`
+2. identify the first-class nodes
+3. identify the attached step/detail events
+4. make the producer-side telemetry real in `resq-agent`
+5. add the matching `resq-flow` contract and view
 
-For agent-assisted work, the clean split is:
+If the flow spec is vague, the implementation will drift.
 
-- `flow-cli-create` to scaffold a brand-new flow
-- `flow-cli-write` to add or change logs on an existing flow
-- `flow-cli-read` to validate the result in `resq-flow`
+At minimum, the spec should declare:
 
-The canonical source docs to start from are:
-
-- `resq-agent/jrodocs/current/resq-flow/README.md`
-- `resq-agent/jrodocs/current/03-15-26/foundation/flow-telemetry-spec-template.md`
-- `resq-agent/jrodocs/current/03-15-26/foundation/mail-flow-telemetry-spec.md`
-
-The spec should declare:
-
-- flow name and flow ID
-- first-class node catalog
-- step and detail IDs attached to those nodes
-- resource and artifact drill-down expectations
+- the flow name and `flow_id`
+- the first-class node catalog
+- the attached `step_id` values under those nodes
 - queue, function, worker, and span naming
-- graph grouping and layout intent
-
-If the spec is vague, the implementation will drift.
+- which things deserve first-class nodes versus attached detail
 
 ## What gets added on the resq-agent side
 
-`resq-agent` is where the flow becomes real. That means queue boundaries, worker boundaries, and emitted telemetry have to exist before `resq-flow` can render anything honestly.
+`resq-agent` is where the flow becomes real.
 
-### Required implementation touchpoints
+That means queue boundaries, worker boundaries, and emitted telemetry have to exist before `resq-flow` can render anything honestly.
 
-- `crates/resq-mail/src/telemetry/definition.rs`
-- `crates/resq-mail/src/telemetry/node_context.rs`
-- `crates/agent-runtime/src/flow_telemetry.rs`
-- `crates/resq-mail/src/telemetry/schema.rs`
-- `crates/resq-mail/src/telemetry/tracing_emit.rs`
-- define queue and function constants
-- enqueue work through the right queue client paths
-- register the handlers in the runner
-- emit meaningful flow telemetry from the worker and process code
-- keep setup and operator docs honest if the new flow changes how people run the system
+### Standard producer-side file shape
 
-### Current mail reference files
+The current standard shape is:
 
-```text
-crates/agent-runtime/src/flow_telemetry.rs
-crates/resq-mail/src/telemetry/definition.rs
-crates/resq-mail/src/telemetry/node_context.rs
-crates/resq-mail/src/telemetry/schema.rs
-crates/resq-mail/src/telemetry/tracing_emit.rs
-crates/resq-mail/src/telemetry/touchpoints.rs
-crates/resq-mail/src/queue/jobs.rs
-crates/resq-mail/src/queue/mod.rs
-crates/resq-mail/src/bin/resq-mail-runner.rs
-crates/resq-mail/src/worker/*.rs
-README.md
-```
+- `definition.rs`
+- `node_context.rs`
+- `schema.rs`
+- `tracing_emit.rs`
+- optional `touchpoints.rs`
 
-### What each file is doing in the mail flow
+What those files mean:
 
-- `crates/agent-runtime/src/flow_telemetry.rs`
-  defines the shared `flow_event` constant and the shared identity and envelope helpers
-- `crates/resq-mail/src/telemetry/definition.rs`
-  declares the mail flow and pipeline IDs, node catalog, resolver helpers, and run-binding entrypoints
-- `crates/resq-mail/src/telemetry/node_context.rs`
-  defines what a bound mail node can emit, including typed node logs and helper-based step logs
-- `crates/resq-mail/src/telemetry/schema.rs`
-  declares the shared event name, the mail action and step vocabulary, and the structured detail shapes
-- `crates/resq-mail/src/telemetry/tracing_emit.rs`
-  emits structured flow logs with the shared flow fields
-- `crates/resq-mail/src/telemetry/touchpoints.rs`
-  holds optional durable-write and cursor-touchpoint helpers for mail-specific side effects
-- `crates/resq-mail/src/queue/jobs.rs`
-  declares queue names and function names such as `rrq:queue:mail-incoming` and `handle_mail_incoming_check`
-- `crates/resq-mail/src/queue/mod.rs`
-  is the enqueue boundary that records queue handoff telemetry
-- `crates/resq-mail/src/bin/resq-mail-runner.rs`
-  registers the functions that actually execute for the flow
-- `crates/resq-mail/src/worker/*.rs`
-  holds the business logic that should emit the step and detail events declared in the flow spec
+- `definition.rs`
+  flow identity, node catalog, resolver helpers, run binding
+- `node_context.rs`
+  what a bound node can emit
+- `schema.rs`
+  stable action and step vocabulary plus detail structs
+- `tracing_emit.rs`
+  how records actually hit tracing and flow logs
+- `touchpoints.rs`
+  optional durable-write helpers for flows that need them
 
-### What the flow telemetry needs to give resq-flow
+### Producer-side checklist
 
-At minimum, the telemetry must provide the shared flow identity fields:
+You usually need to add or update:
 
-- logs with `event = flow_event`
-- `flow_id`
-- `run_id`
-- `component_id`
-- `component_kind`
-- `step_id` when applicable
+- queue names
+- function names
+- worker names
+- handler registration
+- shared flow identity fields
+- node logs for the main flow backbone
+- step logs where attached detail is worth surfacing
 
-Keep stable queue, function, worker, and span names too.
-They still matter for context retention, span mapping, and rollout compatibility.
-
-The standard is:
-
-- `flow_id` is how we know which flow it is
-- `component_id` is the first-class node identity
-- `step_id` is subordinate child-step detail
-
-In simpler language:
-
-- node logs define the main flow structure
-- step logs are attached to nodes and show what happened around that node's work
-
-Traces do not need `event = flow_event`, but they should carry shared identity like `flow_id` and `component_id`.
+The graph should not invent boundaries that the runtime does not actually own.
 
 ## What gets added on the resq-flow side
 
-`resq-flow` has two layers today:
+`resq-flow` has two layers:
 
 - one shared JSON contract
 - one optional TypeScript flow view
@@ -146,157 +112,35 @@ relay/tests/*.rs
 ui/src/core/**/__tests__/*.test.ts*
 ```
 
-### Current mail reference files
-
-```text
-ui/src/flow-contracts/mail-pipeline.json
-ui/src/flows/mail-pipeline.ts
-ui/src/flows/index.ts
-ui/src/test/fixtures/mail-pipeline-replay.json
-relay/tests/filtering.rs
-relay/tests/otlp_logs.rs
-relay/tests/otlp_to_ws.rs
-relay/tests/ws_broadcast.rs
-ui/src/core/hooks/__tests__/spanMapping.test.ts
-ui/src/core/hooks/__tests__/useFlowAnimations.test.ts
-ui/src/core/hooks/__tests__/useTraceJourney.test.ts
-```
-
-### What each file is doing in the mail flow
-
-- `ui/src/flow-contracts/mail-pipeline.json`
-  declares the stable flow ID, the shared log event, the telemetry match rules, and the context retention policy
-- `ui/src/flows/mail-pipeline.ts`
-  declares graph nodes, edges, and `spanMapping`
-- `ui/src/flows/index.ts`
-  registers the flow so the UI can load the rich view when it exists and fall back to a headless flow when it does not
-- `ui/src/test/fixtures/mail-pipeline-replay.json`
-  gives the UI a replayable event stream with realistic attributes
-- `relay/tests/*.rs`
-  verifies that the relay keeps, matches, and publishes the right events
-- `ui` tests verify mapping, animation, and trace-journey behavior against the flow
-
-`resq-flow` should use `flow_id` to decide which contract applies.
-
-Per-flow meaning belongs in:
+What each layer does:
 
 - `ui/src/flow-contracts/<flow-id>.json`
+  stable flow ID, telemetry match rules, and context retention
 - `ui/src/flows/<flow-id>.ts`
-- relay and UI mapping code
-
-It does not belong in `Vector`.
+  optional graph nodes, edges, span mapping, and layout details
+- replay fixture
+  realistic event stream for UI and relay tests
+- relay tests
+  verify matching, retention, and publish behavior
+- UI tests
+  verify mapping, animation, and view behavior
 
 ## Minimal checklist for a new flow
 
-### 1. Write the flow telemetry spec
+1. Write the flow telemetry spec.
+2. Make the runtime boundaries real in `resq-agent`.
+3. Add the shared contract in `resq-flow`.
+4. Add a graph view only if the flow needs it now.
+5. Add a replay fixture.
+6. Add one relay test.
+7. Add one UI test.
 
-You should have a real doc that names:
+## Naming and model reminders
 
-- the flow ID
-- the first-class nodes
-- the step and detail IDs
-- which resources stay drill-down only
-- which things are real process or decision nodes versus subordinate detail
+- `component_id` is the first-class node identity
+- `step_id` is attached detail under that node
 
-### 2. Make the runtime boundaries real in resq-agent
+In simpler language:
 
-Add or update:
-
-- the standard producer-side telemetry scaffold:
-  - `definition.rs`
-  - `node_context.rs`
-  - `schema.rs`
-  - `tracing_emit.rs`
-  - optional `touchpoints.rs`
-- queue names
-- function names
-- worker names
-- handler registration
-- shared flow identity fields
-- node logs for the main flow backbone
-- step logs where attached node detail is worth surfacing
-
-The graph should not invent boundaries that the runtime does not actually own.
-
-As a default:
-
-- start with the core node logs every new flow needs
-- add step logs after that where they help explain a node's work
-
-That base scaffold should stay small and boring:
-
-- `definition.rs` answers what the flow is and how code binds to a node
-- `node_context.rs` answers what can be emitted once code is attached to a node
-- `schema.rs` answers what the stable structured names and payloads are
-- `tracing_emit.rs` answers how those records physically hit tracing
-- `touchpoints.rs` is only needed when the flow has reusable durable-write or cursor-touchpoint helpers
-
-### 3. Add the shared contract in resq-flow
-
-Create `ui/src/flow-contracts/<flow-id>.json` with:
-
-- `id`
-- `name`
-- `telemetry.log_events` set to `["flow_event"]`
-- queue, function, worker, stage, and span prefixes as needed
-- `keep_context`
-
-This is the shared boundary used by both the relay and the UI.
-
-The standard path is:
-
-- logs share one event name
-- `flow_id` identifies the flow
-- the `resq-flow` contract applies the per-flow meaning
-
-### 4. Decide whether the flow is headless first or graph first
-
-If the flow only needs logs, history, and drill-down right now:
-
-- add the contract
-- do not add a graph view yet
-
-If the flow needs a rich canvas now:
-
-- add `ui/src/flows/<flow-id>.ts`
-- map the first-class nodes through `spanMapping`
-- register it in `ui/src/flows/index.ts`
-
-### 5. Add replay and tests
-
-Do not stop at the contract file.
-
-Add:
-
-- a replay fixture
-- at least one relay match or filter test
-- at least one UI mapping or journey test
-- graph view tests if the flow ships with a canvas
-
-### 6. Validate the end-to-end story
-
-Before calling the flow done, make sure:
-
-- the flow contract matches real emitted telemetry
-- structured flow logs use `event = flow_event`
-- `flow_id` correctly identifies the flow
-- queue and worker boundaries still read truthfully
-- `component_id` stays the first-class node identity
-- `step_id` stays subordinate child-step detail
-- the graph stays sparse while drill-down stays rich
-- the logs and canvas agree on what counts as default signal
-- Victoria still receives the full telemetry stream
-- `resq-flow` only receives the filtered flow-shaped subset
-
-## What future flows should not need
-
-After the shared flow routing is in place, a new flow should not need:
-
-- a unique event name
-- a flow-specific Vector regex block
-- a new Vector env var
-- custom per-flow routing logic in `Vector`
-
-`Vector` should stay coarse and generic.
-
-`resq-flow` should use `flow_id` and the flow contract to apply the flow-specific meaning.
+- node logs define the main flow structure
+- step logs are attached to nodes and show what happened around that node's work
