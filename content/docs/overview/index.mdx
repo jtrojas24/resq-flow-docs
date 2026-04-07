@@ -5,6 +5,11 @@ description: What problem resq-flow solves and why it exists on top of the share
 
 `resq-flow` exists because raw telemetry is useful, but it is not always easy to think with.
 
+In practice, teams usually use `resq-flow` in two complementary product views:
+
+- the visualizer view, where the flow path is easiest to follow in the graph
+- the logs view, where the filtered flow logs are easiest to scan directly without the graph
+
 Teams already have logs, traces, metrics, and dashboards. The problem is that a real product flow still gets scattered across too many low-level tools and views:
 
 - a queue handoff is in one place
@@ -25,11 +30,20 @@ What it does not give us by default is a flow-shaped view that answers questions
 - which boundary actually failed
 - which details matter, and which ones are just exhaust
 
-Traditional observability tools are still necessary, but they are often too raw for understanding a business or worker flow at a glance.
+Traditional observability tools are still necessary, but their default posture is to show everything.
+
+That is powerful, but it also means a developer usually has to know what to query, what to filter, and which low-value detail to ignore before the real story becomes clear.
+
+`resq-flow` is solving the opposite problem:
+
+- show only the flow-relevant subset of telemetry
+- make the execution path easy to see without custom querying first
+- surface the logs and boundaries that matter to the flow
+- keep low-value exhaust out of the default view until you intentionally drill down
 
 ## The resq-flow solution
 
-`resq-flow` is a flow-oriented visualization and detail tool built on top of the telemetry we already emit.
+`resq-flow` is a specialized flow-oriented visualization and detail tool built on top of the telemetry we already emit.
 
 It is meant to:
 
@@ -47,10 +61,11 @@ In short, `resq-flow` turns shared telemetry into a flow-shaped product experien
 
 - a replacement for Victoria
 - a separate observability database
+- a raw "show me every log" tool
 - a one-off custom graph for one flow
 - a graph toy that ignores the actual runtime boundaries
 
-The durable storage and query source of truth still lives elsewhere. `resq-flow` is the flow-aware consumer and presentation layer.
+The durable storage and query source of truth still lives elsewhere. `resq-flow` is the flow-aware consumer and presentation layer for the filtered subset that matters to the flow.
 
 ## The one true shape
 
