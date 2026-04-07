@@ -1,6 +1,6 @@
 ---
 title: Using the CLI
-description: Use the resq-flow CLI for relay checks, log inspection, live log tailing, and scoped or global manual debug log emission from a terminal or agent workflow.
+description: Use the resq-flow CLI for relay checks, error troubleshooting, log inspection, live log tailing, and scoped or global manual debug log emission from a terminal or agent workflow.
 ---
 
 The `resq-flow` CLI is the headless interface for the product.
@@ -58,6 +58,7 @@ The CLI exists because some workflows are faster and safer in a terminal:
 For AI agents in particular, the CLI gives a narrow and deterministic surface:
 
 - `status` answers whether the relay is up and whether ingest is active
+- `logs errors` surfaces recent hard failures and retryable critical rows from history
 - `logs list` gives bounded recent history for one flow or all scopes
 - `logs tail` gives a live stream that agents can filter and consume incrementally
 - `logs emit` lets an agent or developer write one explicit log event into the live relay path
@@ -68,7 +69,7 @@ For AI agents in particular, the CLI gives a narrow and deterministic surface:
 If you are using Codex or another agent, the current skill split should be:
 
 - `flow-cli-read`
-  inspect flow logs with `status`, `logs list`, and `logs tail`
+  inspect flow logs with `status`, `logs errors`, `logs list`, and `logs tail`
 - `flow-cli-write`
   add or change logs for an existing flow, then validate them here
 - `flow-cli-create`
@@ -98,6 +99,12 @@ The canonical executable name is `resq-flow`.
    npm link
    ```
 
+   These tools have different jobs:
+
+   - Bun builds and tests the CLI package locally
+   - the built output is a Node-compatible executable
+   - `npm link` only makes the `resq-flow` command available on your shell `PATH`
+
 3. Confirm that the command responds:
 
    ```bash
@@ -110,7 +117,8 @@ The canonical executable name is `resq-flow`.
    make test-cli
    ```
 
-If you do not want to link the package into your shell, you can still use the built fallback entrypoint directly:
+If you do not want to link the package into your shell, the CLI still builds normally, but the `resq-flow` command will usually not be available on your `PATH`.
+In that case, use the built fallback entrypoint directly with Node:
 
 ```bash
 node cli/dist/index.js --help
@@ -138,6 +146,10 @@ Use these commands for different kinds of questions:
 
 - `resq-flow status`
   for relay reachability and ingest health
+- `resq-flow logs errors --flow <flow-id>`
+  for the first pass on failures and retryable critical conditions in one flow
+- `resq-flow logs errors --all`
+  for the first pass on failures and retryable critical conditions across all scopes
 - `resq-flow logs list --flow <flow-id>`
   for recent history for one flow
 - `resq-flow logs list --all`
@@ -150,9 +162,12 @@ Use these commands for different kinds of questions:
   for a live manual debug log that belongs to a flow
 - `resq-flow logs emit --global ...`
   for a live manual debug log that stays unscoped
+- regular Victoria or raw service logs
+  for broader infrastructure or service-level investigation when the flow-aware `resq-flow` views are not enough
 
 The important distinction is:
 
+- `logs errors` uses the history query path and applies deterministic CLI-side troubleshooting heuristics
 - `logs tail` uses the live relay WebSocket stream
 - `logs list` uses the history query path
 - `logs emit` writes a `type: "log"` event into the live relay WebSocket path for manual debugging
@@ -176,6 +191,8 @@ The base command shapes are:
 
 ```bash
 resq-flow status
+resq-flow logs errors --flow <flow-id>
+resq-flow logs errors --all
 resq-flow logs list --flow <flow-id>
 resq-flow logs list --all
 resq-flow logs tail --flow <flow-id>
@@ -187,6 +204,7 @@ resq-flow logs emit --global --message "<text>"
 Flag rules:
 
 - `logs list` and `logs tail` require exactly one of `--flow <flow-id>` or `--all`
+- `logs errors` requires exactly one of `--flow <flow-id>` or `--all`
 - `logs emit` requires exactly one of `--flow <flow-id>` or `--global`
 
 ## Check relay status
@@ -213,6 +231,75 @@ Expected output:
 
 - default output is a short human-readable summary for relay and ingest health
 - `--json` returns stable machine-readable fields for scripts or agents
+
+## Troubleshoot errors from history
+
+Use `logs errors` as the first troubleshooting command when you want to know what failed or needs attention in the flow-aware view.
+
+Start with the default output:
+
+```bash
+resq-flow logs errors --flow mail-pipeline
+resq-flow logs errors --all
+```
+
+Narrow the results when you already know the likely run or window:
+
+```bash
+resq-flow logs errors --flow mail-pipeline --window 15m
+resq-flow logs errors --flow mail-pipeline --attr run_id=thread-201
+resq-flow logs errors --flow mail-pipeline --hard-only
+```
+
+Switch to machine-friendly output for agent workflows:
+
+```bash
+resq-flow logs errors --flow mail-pipeline --json
+resq-flow logs errors --flow mail-pipeline --jsonl
+resq-flow logs errors --flow mail-pipeline --hard-only --json
+```
+
+Supported flags:
+
+- exactly one of `--flow <flow-id>` or `--all`
+- `--window <duration>` where duration is `<number><unit>` and unit is `s`, `m`, or `h`
+- `--attr <key=value>` repeatable
+- `--query <text>`
+- `--limit <n>`
+- `--hard-only`
+- `--json`
+- `--jsonl`
+- `--url <base-url>`
+- `--timeout <ms>`
+
+How the classifications work:
+
+- `error`
+  hard failures surfaced by `status=error`, `error_type`, or `error_message`
+- `critical`
+  retryable attention rows surfaced by `retryable=true`
+
+Expected output:
+
+- default output is a human-readable table with an explicit `error` or `critical` classification column
+- `--json` returns one array of classified rows
+- `--jsonl` returns one classified JSON object per line
+- machine-friendly output includes `classification` and `matchReasons` so agents can see why each row matched
+
+Recommended agent flow:
+
+1. `resq-flow status`
+2. `resq-flow logs errors --flow <flow-id> --json`
+3. If empty or inconclusive, broaden with `resq-flow logs list --flow <flow-id> --json`
+4. If one run or thread is implicated, use `resq-flow runs explain --flow <flow-id> --run <run-id>` or `--thread <thread-id>`
+5. If the issue is happening now, use `resq-flow logs tail --flow <flow-id> --jsonl`
+6. If the flow-aware views still do not explain the problem, widen to regular Victoria or raw service logs in your normal log tooling
+
+Why this escalation exists:
+
+- `resq-flow` is intentionally selective and flow-aware
+- it helps agents find the execution spine quickly
+- it does not replace full raw log investigation for every service, infrastructure, or ingestion issue
 
 ## List recent logs
 
@@ -436,8 +523,10 @@ That means:
 Use the CLI when the problem is narrow and operational:
 
 - `status` before deeper debugging
+- `logs errors` first for failures and retryable critical conditions
 - `logs list` for bounded investigation of one flow, one run, or all scopes
 - `logs tail` during replay, worker debugging, or live validation
+- regular Victoria or raw service logs when the flow-aware surfaces still are not enough
 - `logs emit` when you want to plant one explicit test signal and immediately verify it
 
 Use the UI when the problem is visual or exploratory:
