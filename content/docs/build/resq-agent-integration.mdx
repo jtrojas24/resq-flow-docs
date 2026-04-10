@@ -54,6 +54,8 @@ Use this terminology on the producer side too:
 - step logs are attached to that node through `step_id`
 - `run_id` is producer-owned and should only be set when the record belongs to one concrete run the UI should group together
 
+A Run is one coherent execution story, not every event the flow emits.
+
 This keeps the producer contract honest:
 
 - run-backed events power the Runs surface
