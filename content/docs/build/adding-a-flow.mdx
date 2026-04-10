@@ -139,6 +139,26 @@ What each layer does:
 6. Add one relay test.
 7. Add one UI test.
 
+## Run ID implementation pattern
+
+If the flow should support Runs, keep the implementation simple:
+
+1. decide the one concrete unit of work that should become a Run
+2. mint one `run_id` exactly once when that work starts
+3. store that `run_id` on the top-level job or request payload
+4. carry the same `run_id` unchanged through downstream jobs, worker handoffs, and emitted flow events
+5. leave `run_id` absent for flow-visible activity that should not become a top-level Run
+
+Use a shared helper plus a flow-specific wrapper.
+
+For example, the current mail flow uses a wrapper around the shared helper so minted IDs look like:
+
+- `mail-pipeline_<uuid-v4>`
+
+Do not re-mint `run_id` at every worker boundary.
+
+The producer should mint once and propagate.
+
 ## Naming and model reminders
 
 - `component_id` is the first-class node identity

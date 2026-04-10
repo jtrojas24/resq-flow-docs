@@ -61,6 +61,13 @@ This keeps the producer contract honest:
 - run-backed events power the Runs surface
 - other flow-visible events can still appear in logs, canvas detail, and history without `run_id`
 
+When a flow should support Runs, the producer-side recipe should stay simple:
+
+1. mint one `run_id` exactly once when the concrete unit of work starts
+2. store it on the top-level job or request payload
+3. propagate it unchanged across downstream jobs, worker handoffs, and flow events
+4. leave it absent for flow-visible activity that should not become a top-level Run
+
 That keeps the producer contract simple:
 
 - node identity stays explicit
