@@ -40,6 +40,14 @@ Which run or journey this record belongs to.
 
 Use it to group one concrete execution path across multiple components.
 
+This is required for run-backed events.
+
+It may be absent for flow-visible activity that belongs to the flow but does not represent one concrete top-level run, such as polling, scheduler activity, or other pre-work checks.
+
+`resq-flow` uses `run_id` to shape the Runs surface.
+
+Logs, canvas detail, and history can still show flow-visible events that do not carry `run_id`.
+
 ### `component_id`
 
 The canonical identity of the first-class node.

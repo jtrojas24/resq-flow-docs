@@ -61,3 +61,14 @@ The important idea is consistency:
 - live and history should use the same flow semantics
 - the relay should stay the canonical flow filter
 - the UI should not invent a different matching model
+
+## Run-backed vs flow-visible activity
+
+The relay keeps one normalized flow event model whether or not a record has `run_id`.
+
+That means:
+
+- producer-owned `run_id` marks one concrete execution story
+- the Runs surface is built from run-backed events
+- logs, canvas detail, and history can still show flow-visible events without `run_id`
+- the UI should not synthesize fake run IDs just to force scheduler, polling, or mailbox-level activity into Runs

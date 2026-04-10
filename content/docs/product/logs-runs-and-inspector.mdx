@@ -65,6 +65,12 @@ That means:
 - seeing what happened before and after an error
 - understanding which boundary actually changed the outcome
 
+Runs should stay run-backed.
+
+If a producer emits one coherent `run_id`, `resq-flow` can show that execution as a Run.
+
+Flow-visible events without `run_id` can still appear in logs, canvas detail, and history, but they should not be promoted into top-level Runs.
+
 ## Inspector and sidebar
 
 The inspector should be meaning-first.

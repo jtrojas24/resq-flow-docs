@@ -52,6 +52,12 @@ Use this terminology on the producer side too:
 
 - node logs are anchored by the first-class `component_id`
 - step logs are attached to that node through `step_id`
+- `run_id` is producer-owned and should only be set when the record belongs to one concrete run the UI should group together
+
+This keeps the producer contract honest:
+
+- run-backed events power the Runs surface
+- other flow-visible events can still appear in logs, canvas detail, and history without `run_id`
 
 That keeps the producer contract simple:
 

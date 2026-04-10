@@ -46,6 +46,7 @@ At minimum, the spec should declare:
 - the flow name and `flow_id`
 - the first-class node catalog
 - the attached `step_id` values under those nodes
+- the concrete unit of work that should carry one `run_id`, if the flow should support Runs
 - queue, function, worker, and span naming
 - which things deserve first-class nodes versus attached detail
 
@@ -87,6 +88,7 @@ You usually need to add or update:
 - worker names
 - handler registration
 - shared flow identity fields
+- producer-owned `run_id` minting and propagation when the flow should support Runs
 - node logs for the main flow backbone
 - step logs where attached detail is worth surfacing
 
@@ -139,8 +141,10 @@ What each layer does:
 
 - `component_id` is the first-class node identity
 - `step_id` is attached detail under that node
+- `run_id` is the producer-owned execution identity for one concrete run
 
 In simpler language:
 
 - node logs define the main flow structure
 - step logs are attached to nodes and show what happened around that node's work
+- run-backed events power the Runs surface, while other flow-visible events can still appear in logs, canvas detail, and history
