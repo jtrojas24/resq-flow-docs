@@ -77,7 +77,13 @@ It is useful when you want to:
 Before you run it:
 
 1. start the relay and UI with `make dev`
-2. in another terminal, run:
+2. open the public demo flow in the browser:
+
+   ```text
+   http://localhost:5173/#/flows/demo-pipeline?mode=live&view=canvas
+   ```
+
+3. in another terminal, run:
 
    ```bash
    make replay
@@ -85,8 +91,9 @@ Before you run it:
 
 What to expect:
 
-- the live UI should update immediately
-- `resq-flow logs tail --flow mail-pipeline` should receive the fixture logs immediately
+- the `demo-pipeline` canvas should update immediately
+- `resq-flow logs tail --flow demo-pipeline` should receive the fixture logs immediately
+- the happy-path nodes and blue edges should light from top to bottom on the demo flow
 - this is live fixture traffic, not durable production traffic
 - `logs list` only shows it later if the history backend persists and serves corresponding events
 
